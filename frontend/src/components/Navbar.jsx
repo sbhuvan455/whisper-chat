@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 
 export default function Navbar() {
     return (
-        <header className="flex items-center justify-between h-16 px-4 bg-background border-b md:px-6">
+        <header className="flex items-center justify-between h-16 px-4 bg-background border-b md:px-6 fixed top-0 w-full">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold" prefetch={false}>
             <MegaphoneIcon className="w-6 h-6" />
             <span className="sr-only">WhisperSpace</span>
