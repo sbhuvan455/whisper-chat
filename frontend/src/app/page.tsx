@@ -23,11 +23,11 @@ export default function Component() {
                 </Link>
                 </div>
                 <img
-                  src="/homeImage.png"
-                  width={550}
-                  height={550}
-                  alt="Hero"
-                  className="mx-auto md:my-0 my-10 aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
+                    src="/homeImage.png"
+                    width={550}
+                    height={550}
+                    alt="Hero"
+                    className="mx-auto md:my-0 my-10 aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
                 />
             </div>
             </section>

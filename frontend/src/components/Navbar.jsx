@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 
 export default function Navbar() {
     return (
@@ -10,13 +11,18 @@ export default function Navbar() {
             <span className="sr-only">WhisperSpace</span>
         </Link>
         <nav className="flex items-center gap-4">
-            <Link
-                href="/login"
-                className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
-                prefetch={false}
-            >
-                Login
-            </Link>
+            <SignedOut>
+                <Link
+                    href="/login"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
+                    prefetch={false}
+                >
+                    Login
+                </Link>
+            </SignedOut>
+            <SignedIn>
+                <UserButton />
+            </SignedIn>
             <Link
                 href="/about"
                 className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
@@ -43,14 +49,16 @@ export default function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="md:hidden">
                 <div className="grid gap-4 p-4">
-                <Link
-                    href="/login"
-                    className="flex items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                    prefetch={false}
-                >
-                    Login
-                    <ChevronRightIcon className="w-4 h-4" />
-                </Link>
+                <SignedOut>
+                    <Link
+                        href="/login"
+                        className="flex items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        prefetch={false}
+                    >
+                        Login
+                        <ChevronRightIcon className="w-4 h-4" />
+                    </Link>
+                </SignedOut>
                 <Link
                     href="/about"
                     className="flex items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
