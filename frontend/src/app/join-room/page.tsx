@@ -15,8 +15,8 @@ import { ClipboardCopy, ArrowRight, LogIn, Plus } from 'lucide-react'
 function JoinRoom() {
   const { isSignedIn, user } = useUser()
   const router = useRouter()
-  const [roomId, setRoomId] = useState('')
-  const [generatedRoomId, setGeneratedRoomId] = useState('')
+  const [roomId, setRoomId] = useState<string>('')
+  const [generatedRoomId, setGeneratedRoomId] = useState<string>('')
 
   const { toast } = useToast()
 
@@ -32,6 +32,11 @@ function JoinRoom() {
   }
 
   const generateRoomId = () => {
+    
+    if(generatedRoomId){
+      return;
+    }
+
     const randomId = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8)
     setGeneratedRoomId(randomId)
   }
