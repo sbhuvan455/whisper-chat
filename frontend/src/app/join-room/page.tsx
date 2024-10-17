@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast"
 import { Toaster } from '@/components/ui/toaster'
 import { ClipboardCopy, ArrowRight, LogIn, Plus } from 'lucide-react'
 import { useSocket } from '@/context/socketProvider'
-import { Socket } from "socket.io-client"
 
 function JoinRoom() {
   const { isSignedIn, user } = useUser()
@@ -23,9 +22,10 @@ function JoinRoom() {
 
   const { toast } = useToast()
 
-  const socket: Socket = useSocket();
+  const socket = useSocket();
 
   useEffect(() => {
+    if (!socket) return;
 
     const handleRoomCreated = (response: { roomId: string }) => {
       setIsCreatingRoom(false);
@@ -49,17 +49,21 @@ function JoinRoom() {
       });
     };
 
-    socket.on('roomCreated', handleRoomCreated);
-    socket.on('roomError', handleRoomError);
+    if (socket) {
+      socket.on("roomCreated", handleRoomCreated);
+      socket.on("roomError", handleRoomError);
+    }
 
     return () => {
-      socket.off('roomCreated', handleRoomCreated);
-      socket.off('roomError', handleRoomError);
+      if (socket) {
+        socket.off("roomCreated", handleRoomCreated);
+        socket.off("roomError", handleRoomError);
+      }
     };
 
   }, [socket]);
 
-  if (!isSignedIn) {
+  if (!isSignedIn || !socket) {
     return (
       <Card className="md:w-full w-4/5 max-w-md mx-auto my-28 md:my-40">
         <CardHeader>
@@ -91,8 +95,12 @@ function JoinRoom() {
     })
   }
 
+  const joinRoomById = (roomId: string) => {
+    router.push(`/join-room/${roomId}`)
+  }
+
   const joinRoom = (id: string) => {
-    router.push(`/join-room/${id}`)
+    router.push(`/room/${id}`)
   }
 
   return (
@@ -112,7 +120,7 @@ function JoinRoom() {
                   value={roomId}
                   onChange={(e) => setRoomId(e.target.value)}
               />
-              <Button onClick={() => joinRoom(roomId)}>
+              <Button onClick={() => joinRoomById(roomId)}>
                   Join <LogIn className="ml-2 h-4 w-4" />
               </Button>
               </div>

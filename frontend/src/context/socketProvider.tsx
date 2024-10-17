@@ -12,7 +12,7 @@ const socketContext = createContext<Socket | null>(null);
 
 export const useSocket = () => {
     const state = useContext(socketContext)
-    if(!state) throw new Error("state is undefined!");
+    if(!state) return null;
 
     return state;
 }

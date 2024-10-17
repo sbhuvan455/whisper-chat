@@ -3,10 +3,16 @@ import express from 'express';
 import http from 'http';
 import { Connect } from "./db/connectDB.js";
 import { SocketService } from "./socket/socket.js";
+import cors from 'cors';
+
+import roomRouter from "./routes/room.router.js"
 
 dotenv.config();
 const app = express();
 const httpServer = http.createServer(app);
+
+app.use(cors())
+app.use(express.json());
 
 const socketService = new SocketService()
 
@@ -14,6 +20,7 @@ socketService.io.attach(httpServer);
 
 const port = process.env.PORT || 8000;
 
+app.use('/api/v1', roomRouter);
 
 Connect()
 .then((response) => {
