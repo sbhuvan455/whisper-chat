@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -11,14 +11,53 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from '@/components/ui/toaster'
 import { ClipboardCopy, ArrowRight, LogIn, Plus } from 'lucide-react'
+import { useSocket } from '@/context/socketProvider'
+import { Socket } from "socket.io-client"
 
 function JoinRoom() {
   const { isSignedIn, user } = useUser()
   const router = useRouter()
   const [roomId, setRoomId] = useState<string>('')
   const [generatedRoomId, setGeneratedRoomId] = useState<string>('')
+  const [isCreatingRoom, setIsCreatingRoom] = useState<boolean>(false)
 
   const { toast } = useToast()
+
+  const socket: Socket = useSocket();
+
+  useEffect(() => {
+
+    const handleRoomCreated = (response: { roomId: string }) => {
+      setIsCreatingRoom(false);
+      setGeneratedRoomId(response.roomId)
+
+      toast({
+        title: "Room Created",
+        description: "Your room has been created successfully!",
+        variant: "default"
+      });
+    };
+
+    const handleRoomError = (error: string) => {
+      setIsCreatingRoom(false);
+      setGeneratedRoomId('');
+
+      toast({
+        title: "Error Creating Room",
+        description: error,
+        variant: "destructive"
+      });
+    };
+
+    socket.on('roomCreated', handleRoomCreated);
+    socket.on('roomError', handleRoomError);
+
+    return () => {
+      socket.off('roomCreated', handleRoomCreated);
+      socket.off('roomError', handleRoomError);
+    };
+
+  }, [socket]);
 
   if (!isSignedIn) {
     return (
@@ -33,12 +72,15 @@ function JoinRoom() {
 
   const generateRoomId = () => {
     
-    if(generatedRoomId){
+    if (generatedRoomId || isCreatingRoom) {
       return;
     }
 
+    setIsCreatingRoom(true);
+
     const randomId = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8)
-    setGeneratedRoomId(randomId)
+
+    socket.emit('createRoom', { roomId: randomId, userId: user.id });
   }
 
   const copyToClipboard = () => {
@@ -84,9 +126,19 @@ function JoinRoom() {
 
           <div className="space-y-2">
               <Label>Create New Room</Label>
-              <Button onClick={generateRoomId} className="w-full">
-              <Plus className="mr-2 h-4 w-4" /> Create New Room
-              </Button>
+              <Button 
+                onClick={generateRoomId} 
+                className="w-full"
+                disabled={isCreatingRoom}
+              >
+              {isCreatingRoom ? (
+                "Creating Room..."
+              ) : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" /> Create New Room
+                </>
+              )}
+            </Button>
               {generatedRoomId && (
               <div className="mt-4 space-y-2">
                   <Input

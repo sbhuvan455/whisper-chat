@@ -1,4 +1,5 @@
 import { Server } from "socket.io"
+import { CreateRoom } from "../controllers/room.controller.js";
 
 export class SocketService {
     
@@ -20,7 +21,17 @@ export class SocketService {
 
     setupListeners = () => {
         this._io.on('connection', (socket) => {
-            console.log("Socket connected: " + socket.id)
+            console.log("Socket connected: " + socket.id);
+
+            socket.on('createRoom', async (roomInfo) => {
+                const { success, data } = await CreateRoom({ ...roomInfo, socketId: socket.id });
+
+                if(success) {
+                    socket.emit("roomCreated", data)
+                }else {
+                    socket.emit("roomError", data);
+                }
+            })
         })
     }
 }

@@ -8,7 +8,7 @@ export default function Component() {
             <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
                 <div className="space-y-4">
                 <h1 className="text-4xl font-bold tracking-tighter md:text-5xl/tight">
-                    Real-Time Conversations,a Anytime, Anywhere
+                    Real-Time Conversations,Anytime, Anywhere
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                     Connect with friends, family, and communities in real-time. Our chat app makes it easy to stay in touch
