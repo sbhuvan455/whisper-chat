@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  title       String   
+  description String?
+  isActive    Boolean  @default(true)
+  adminId     String
+  Members     Member[]
+  Chats       Chat[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  userId    String
+  roomId    String
+  Room      Room     @relation(fields: [roomId], references: [id])
+  Chats     Chat[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, roomId])
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  roomId    String
+  Room      Room     @relation(fields: [roomId], references: [id])
+  MemberId  String
+  Member    Member   @relation(fields: [MemberId], references: [id])
+  message   String
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
