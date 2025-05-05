@@ -1,4 +1,4 @@
-import { clerkClient, getAuth } from '@clerk/express'
+import { clerkClient, getAuth, User } from '@clerk/express'
 import { prisma } from '..';
 import { Room } from '../../generated/prisma';
 
@@ -85,3 +85,41 @@ export const createNewMember = async (userId: string, roomId: string) => {
     
 }
 
+export const acceptUser = async (roomId: string, user: User) => {
+    try {
+        const { userId } = JSON.parse(user.toString());
+
+        if(!userId) throw new Error("User Id Not Found")
+
+        const room = await prisma.room.findUnique({
+            where: {
+                id: roomId
+            }
+        })
+
+        if(!room) throw new Error("Room Not Found");
+
+        const Member = await prisma.member.findFirst({
+            where: {
+                roomId,
+                userId
+            }
+        })
+
+        if(Member) return { success: true, message: "User already a member of the room", data: Member };
+
+        const newMember = await prisma.member.create({
+            data: {
+                roomId,
+                userId
+            }
+        })
+
+        if(!newMember) throw new Error("Error accepting member")
+
+        return { success: true, message: "User accepted successfully", data: newMember };
+    } catch (error: any) {
+        console.log('Error accepting user:', error);
+        return { success: false, error: error.message };
+    }
+}

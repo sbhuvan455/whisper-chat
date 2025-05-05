@@ -54,9 +54,38 @@ export class ChatManager {
         }
     }
 
-    public acceptUser(roomId: string, user: any){
+    public async acceptUser(ws:WebSocket, roomId: string, user: any){
         const { userId } = JSON.parse(user.toString());
 
-        
+        await createNewMember(userId, roomId)
+                .then((response) => {
+                    if(response.success){
+                        ws.send(JSON.stringify({
+                            type: JOIN_ROOM,
+                            data: {
+                                userId,
+                                roomId,
+                                message: "You have been accepted to the room"
+                            }
+                        }))
+
+                        const adminId = this.rooms.get(roomId);
+                        const adminWs = this.admin.get(adminId!);
+
+                        if(adminWs){
+                            adminWs.send(JSON.stringify({
+                                type: JOIN_ROOM,
+                                data: {
+                                    userId,
+                                    roomId,
+                                    message: "The user has been accepted to the room"
+                                }
+                            }))
+                        }
+                    }
+                })
+                .catch((err) => {
+                    console.log('Error accepting user:', err);
+                })
     }
 }
