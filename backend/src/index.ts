@@ -1,10 +1,10 @@
-
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http'; 
 import { WebSocketServer } from 'ws';
 import { PrismaClient } from '../generated/prisma'
 
-import { clerkMiddleware } from '@clerk/express'
+// import { clerkMiddleware } from '@clerk/express'
 
 import roomRouter from "./routes/room.routes"
 import { ChatManager } from './utils/chatManager';
@@ -17,8 +17,11 @@ const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
 app.use(express.json())
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+}))
 app.use(express.urlencoded({ extended: true }))
-app.use(clerkMiddleware())
 
 export const prisma = new PrismaClient()
 
@@ -45,7 +48,7 @@ wss.on('connection', (ws) => {
     }
 
     if(type === ACCEPT_USER){
-      
+      chatManager.acceptUser(ws, data.roomId, data.user);
     }
   })
 });
@@ -53,5 +56,5 @@ wss.on('connection', (ws) => {
 app.use("/api/v1/room", roomRouter)
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
+  console.log(`🚀 Server listening on http://localhost:${PORT} and ${process.env.CORS_ORIGIN}`);
 });

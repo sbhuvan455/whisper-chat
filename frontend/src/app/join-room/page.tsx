@@ -175,6 +175,7 @@
 
 "use client";
 import React, { useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 
 function CreateRoomPage() {
   const [formData, setFormData] = useState({
@@ -184,6 +185,8 @@ function CreateRoomPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const { isSignedIn, user } = useUser();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -200,12 +203,17 @@ function CreateRoomPage() {
     setSuccess(false);
 
     try {
+      if(!isSignedIn) {
+        setError('You must be signed in to create a room.');
+        return;
+      }
+
       const res = await fetch('/api/v1/room/create-room', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({...formData, user }),
       });
 
       if (!res.ok) {

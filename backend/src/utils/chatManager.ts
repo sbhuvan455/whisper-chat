@@ -1,25 +1,28 @@
 import { WebSocket } from 'ws';
-import { ROOM, ROOM_NOT_FOUND, JOIN_ROOM } from '../types';
+import { ROOM, ROOM_NOT_FOUND, JOIN_ROOM, PERMISSION, User } from '../types';
 import { createNewMember } from '../controller/room.controller';
+import { RoomManager } from './roomManager';
 
 export class ChatManager {
-    private rooms: Map<string, string>;
-    private admin: Map<string, WebSocket>;
+    private rooms: Map<string, string>;  // Maps roomId to adminId
+    private admin: Map<string, WebSocket>; // Maps adminId to WebSocket connection
+    private roomObj: Map<string, RoomManager>; // Maps roomId to Room object connection
 
     constructor() {
         this.rooms = new Map<string, string>();
         this.admin = new Map<string, WebSocket>();
+        this.roomObj = new Map<string, RoomManager>();
     }
 
     public addRoom(ws: WebSocket, data: ROOM){
-        const { id, adminId } = data;
+        const { roomId, adminId } = data;
 
-        this.rooms.set(id, adminId);
+        this.rooms.set(roomId, adminId);
         this.admin.set(adminId, ws);
     }
 
     public async joinRoom(ws: WebSocket, roomId: string, user: any){
-        const { userId } = JSON.parse(user.toString());
+        const { userId } = JSON.parse(user.toString())?.id;
 
         if(this.rooms.has(roomId)){
             await createNewMember(userId, roomId)
@@ -35,9 +38,9 @@ export class ChatManager {
 
                             if(adminWs){
                                 adminWs.send(JSON.stringify({
-                                    type: JOIN_ROOM,
+                                    type: PERMISSION,
                                     data: {
-                                        userId,
+                                        user,
                                         roomId,
                                         message: "A new user is trying to join the room, please accept or reject him"
                                     }
@@ -87,5 +90,37 @@ export class ChatManager {
                 .catch((err) => {
                     console.log('Error accepting user:', err);
                 })
+    }
+
+    public async sendMessage(ws: WebSocket, userId: string, roomId: string, message: string) {
+        const roomManager = this.roomObj.get(roomId);
+
+        if(!roomManager) {
+            ws.send(JSON.stringify({ type: ROOM_NOT_FOUND, data: { roomId } }));
+            return;
+        }
+
+        roomManager.handleMessage(userId, message);
+    }
+
+    public endRoom(roomId: string, requesterId: string) {
+        const adminId = this.rooms.get(roomId);
+        if (adminId !== requesterId) return;
+
+        const roomManager = this.roomObj.get(roomId);
+        if (!roomManager) return;
+
+        roomManager.endRoom(); // Broadcasts ROOM_CLOSED and disconnects everyone
+
+        // Clean up maps
+        this.rooms.delete(roomId);
+        this.admin.delete(adminId);
+        this.roomObj.delete(roomId);
+    }
+
+    public isAdmin(ws: WebSocket, roomId: string): boolean {
+        const adminId = this.rooms.get(roomId);
+        const adminWs = this.admin.get(adminId!);
+        return ws === adminWs;
     }
 }

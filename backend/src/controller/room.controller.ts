@@ -1,28 +1,24 @@
-import { clerkClient, getAuth, User } from '@clerk/express'
+// import { clerkClient, getAuth, User } from '@clerk/express'
 import { prisma } from '..';
-import { Room } from '../../generated/prisma';
 
 export const createRoom = async (req: any, res: any) => {
+    console.log('Creating room with data:', req.body);
     const { title, description } = req.body;
 
     if (!title || !description) {
         return res.status(400).json({ error: 'title and description are required' });
     }
 
-    const { userId } = getAuth(req)
+    const { user } = req.body;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' })
-
-    const user = await clerkClient.users.getUser(userId);
-
-    if (!user) return res.status(401).json({ error: 'Unauthorized, Incorrect user id' })
+    if (!user) return res.status(401).json({ error: 'Unauthorized' })
 
     try {
         const room = await prisma.room.create({
             data: {
                 title,
                 description,
-                adminId: userId,
+                adminId: user.id,
             },
         });
 
@@ -33,7 +29,7 @@ export const createRoom = async (req: any, res: any) => {
 
         });
     } catch (error) {
-        console.error('Error creating room:', error);
+        // console.error('Error creating room:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 }
@@ -85,9 +81,9 @@ export const createNewMember = async (userId: string, roomId: string) => {
     
 }
 
-export const acceptUser = async (roomId: string, user: User) => {
+export const acceptUser = async (roomId: string, user: any) => {
     try {
-        const { userId } = JSON.parse(user.toString());
+        const { userId } = JSON.parse(user.toString()).id;
 
         if(!userId) throw new Error("User Id Not Found")
 
