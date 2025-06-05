@@ -39,6 +39,7 @@ wss.on('connection', (ws) => {
             chatManager.joinRoom(ws, data.roomId, data.user);
         }
         if (type === types_1.ACCEPT_USER) {
+            chatManager.acceptUser(ws, data.roomId, data.user);
         }
     });
 });

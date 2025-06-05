@@ -1,50 +1,50 @@
-"use client"
+"use client";
 
-import { io, Socket } from "socket.io-client"
-import React, { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react";
+import { DISCONNECT } from "../../types";
 
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080";
 
-interface SocketProviderProps{
-    children?: React.ReactNode
+interface SocketContextType {
+    socket: WebSocket | null;
+    isConnected: boolean;
 }
 
-const socketContext = createContext<Socket | null>(null);
+const SocketContext = createContext<SocketContextType>({
+    socket: null,
+    isConnected: false,
+});
 
-export const useSocket = () => {
-    const state = useContext(socketContext)
-    if(!state) return null;
-
-    return state;
-}
-
-export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-
-    const [socket, setSocket] = useState<Socket | null>(null)
-
+export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
+    const [socket, setSocket] = useState<WebSocket | null>(null);
+    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        const _socket: Socket = io('http://localhost:8080')
+        const ws = new WebSocket(WS_URL);
 
-        _socket.on('connect', () => {
-            console.log("connected to the database server");
-        })
+        ws.onopen = () => {
+            setSocket(ws);
+            setIsConnected(true);
+        };
 
-        _socket.on('connect_error', (err) => {
-            console.error('Connection error:', err);
-        });
-
-        setSocket(_socket);
+        ws.onclose = () => {
+            setSocket(null);
+            setIsConnected(false);
+        };
 
         return () => {
-            _socket.disconnect();
-            setSocket(null);
-        }
-
-    }, [])
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: DISCONNECT }));
+            }
+            ws.close();
+        };
+    }, []);
 
     return (
-        <socketContext.Provider value={socket}>
+        <SocketContext.Provider value={{ socket, isConnected }}>
             {children}
-        </socketContext.Provider>
-    )
-}
+        </SocketContext.Provider>
+    );
+};
+
+export const useSocket = () => useContext(SocketContext);

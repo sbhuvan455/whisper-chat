@@ -16,15 +16,17 @@ class ChatManager {
     constructor() {
         this.rooms = new Map();
         this.admin = new Map();
+        this.roomObj = new Map();
     }
     addRoom(ws, data) {
-        const { id, adminId } = data;
-        this.rooms.set(id, adminId);
+        const { roomId, adminId } = data;
+        this.rooms.set(roomId, adminId);
         this.admin.set(adminId, ws);
     }
     joinRoom(ws, roomId, user) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const { userId } = JSON.parse(user.toString());
+            const { userId } = (_a = JSON.parse(user.toString())) === null || _a === void 0 ? void 0 : _a.id;
             if (this.rooms.has(roomId)) {
                 yield (0, room_controller_1.createNewMember)(userId, roomId)
                     .then((res) => {
@@ -39,9 +41,9 @@ class ChatManager {
                             const adminWs = this.admin.get(adminId);
                             if (adminWs) {
                                 adminWs.send(JSON.stringify({
-                                    type: types_1.JOIN_ROOM,
+                                    type: types_1.PERMISSION,
                                     data: {
-                                        userId,
+                                        user,
                                         roomId,
                                         message: "A new user is trying to join the room, please accept or reject him"
                                     }
@@ -91,6 +93,34 @@ class ChatManager {
                 console.log('Error accepting user:', err);
             });
         });
+    }
+    sendMessage(ws, userId, roomId, message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const roomManager = this.roomObj.get(roomId);
+            if (!roomManager) {
+                ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
+                return;
+            }
+            roomManager.handleMessage(userId, message);
+        });
+    }
+    endRoom(roomId, requesterId) {
+        const adminId = this.rooms.get(roomId);
+        if (adminId !== requesterId)
+            return;
+        const roomManager = this.roomObj.get(roomId);
+        if (!roomManager)
+            return;
+        roomManager.endRoom(); // Broadcasts ROOM_CLOSED and disconnects everyone
+        // Clean up maps
+        this.rooms.delete(roomId);
+        this.admin.delete(adminId);
+        this.roomObj.delete(roomId);
+    }
+    isAdmin(ws, roomId) {
+        const adminId = this.rooms.get(roomId);
+        const adminWs = this.admin.get(adminId);
+        return ws === adminWs;
     }
 }
 exports.ChatManager = ChatManager;
