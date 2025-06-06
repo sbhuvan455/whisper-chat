@@ -130,17 +130,7 @@ function JoinRoom() {
 
   const joinRoomById = (roomId: string) => {
     if (!roomId || !user) return;
-
-    const message = {
-      type: JOIN_ROOM,
-      data: {
-        roomId,
-        user: JSON.stringify({ id: user.id, name: user.fullName })
-      }
-    };
-
-    socket?.send(JSON.stringify(message));
-    router.push(`/room/${roomId}`);
+    router.push(`/room/${roomId}/waiting`);
   };
 
   const joinRoom = (id: string) => {

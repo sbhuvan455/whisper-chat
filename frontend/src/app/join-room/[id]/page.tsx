@@ -14,11 +14,11 @@ function WaitingRoom() {
     const router = useRouter()
     const { toast } = useToast()
     const { id } = useParams()
-    const socket = useSocket()
+    const {socket, isConnected} = useSocket()
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        if (!socket?.connected) {
+        if (!isConnected) {
             return;
         }
 
@@ -26,7 +26,7 @@ function WaitingRoom() {
             try {
                 setIsLoading(true)
                 const response = await axios.post(`http://localhost:8000/api/v1/room/${id}`, {
-                    socketId: socket.id
+                    socketId: socket?.id
                 })
                 console.log(response)
 
@@ -43,7 +43,7 @@ function WaitingRoom() {
         }
 
         fetchRoomDetails()
-    }, [socket?.connected, id, router, user])
+    }, [isConnected, id, router, user])
 
     if (!isSignedIn) {
         return (

@@ -1,79 +1,78 @@
-"use client"
+'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { useUser } from '@clerk/clerk-react'
-import { Button } from "@/components/ui/button"
-import { useRouter } from 'next/navigation'
-import { useParams } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 import { useSocket } from '@/context/socketProvider'
-import axios from "axios"
-import { useToast } from "@/hooks/use-toast"
+import { JOIN_ROOM, ADMIN_NOT_IN_ROOM } from '../../../../../types'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-function WaitingRoom() {
-    const { isSignedIn, user } = useUser()
+const WaitingRoom = () => {
+    const { id: roomId } = useParams()
+    const { user, isSignedIn } = useUser()
+    const { socket } = useSocket()
     const router = useRouter()
-    const { toast } = useToast()
-    const { id } = useParams()
-    const socket = useSocket()
-    const [isLoading, setIsLoading] = useState(true)
+
+    const [adminNotInRoom, setAdminNotInRoom] = useState(false)
 
     useEffect(() => {
-        if (!socket?.connected) {
-            return;
-        }
+        if (!socket || !user || !roomId) return
 
-        const fetchRoomDetails = async () => {
-            try {
-                setIsLoading(true)
-                const response = await axios.post(`http://localhost:8000/api/v1/room/${id}`, {
-                    socketId: socket.id
-                })
-                console.log(response)
-
-            } catch (error: any) {
-                console.error(error.response?.data)
-                toast({
-                    title: "Error",
-                    description: error.response?.data?.message || "Failed to fetch room details",
-                    variant: "destructive"
-                })
-            } finally {
-                setIsLoading(false)
+        const message = {
+            type: JOIN_ROOM,
+            data: {
+                roomId,
+                user
             }
         }
 
-        fetchRoomDetails()
-    }, [socket?.connected, id, router, user])
+        socket.send(JSON.stringify(message))
+
+        const handleMessage = (event: MessageEvent) => {
+            try {
+                const { type, data } = JSON.parse(event.data)
+
+                if (type === JOIN_ROOM && data.roomId === roomId) {
+                    router.push(`/room/${roomId}`)
+                }
+
+                if (type === ADMIN_NOT_IN_ROOM && data.roomId === roomId) {
+                    setAdminNotInRoom(true)
+                }
+            } catch (err) {
+                console.error('Invalid message format:', err)
+            }
+        }
+
+        socket.addEventListener('message', handleMessage)
+
+        return () => {
+            socket.removeEventListener('message', handleMessage)
+        }
+    }, [socket, user, roomId, router])
 
     if (!isSignedIn) {
         return (
-            <div className='flex flex-col items-center justify-center my-40 space-y-4'>
-                <div>You need to sign in to continue!</div>
-                <Button onClick={() => router.push('/login')}>Sign in</Button>
-            </div>
-        )
-    }
-
-    if (!socket) {
-        return (
-            <div className='flex items-center justify-center my-40'>
-                Connecting to the server...
-            </div>
-        )
-    }
-
-    if (isLoading) {
-        return (
-            <div className='flex items-center justify-center my-40'>
-                Loading room details...
-            </div>
+            <Card className="max-w-md mx-auto mt-40">
+                <CardHeader>
+                    <CardTitle>Unauthorized</CardTitle>
+                    <CardDescription>Please sign in to join the room.</CardDescription>
+                </CardHeader>
+            </Card>
         )
     }
 
     return (
-        <div className='flex flex-col items-center justify-center my-40 space-y-4'>
-            <div>Waiting Room</div>
-            <div>Welcome, {user?.fullName}!</div>
+        <div className="flex flex-col justify-center items-center min-h-screen">
+            <Loader2 className="animate-spin w-10 h-10 text-muted-foreground mb-4" />
+            <h1 className="text-xl font-semibold">Joining Room...</h1>
+            <p className="text-sm text-muted-foreground mt-2 text-center max-w-sm">
+                Wait for the admin to accept you into the room. If you are the admin, you'll be redirected automatically.
+            </p>
+            {adminNotInRoom && (
+                <p className="text-red-500 mt-4">Admin has not joined the room yet. Please wait or try again shortly.</p>
+            )}
         </div>
     )
 }

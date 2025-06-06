@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { ROOM, ROOM_NOT_FOUND, JOIN_ROOM, PERMISSION, User } from '../types';
+import { ROOM, ROOM_NOT_FOUND, JOIN_ROOM, PERMISSION, User, ADMIN_NOT_IN_ROOM } from '../types';
 import { createNewMember } from '../controller/room.controller';
 import { RoomManager } from './roomManager';
 
@@ -31,6 +31,26 @@ export class ChatManager {
                         if(res.isAdmin){
                             // Join him to the room
                             this.admin.set(userId, ws);
+
+                            const roomManager = this.roomObj.get(roomId);
+                            if(roomManager) {
+                                roomManager.addMember(userId, ws);
+                            }else {
+                                // Create a new RoomManager if it doesn't exist
+                                const newRoomManager = new RoomManager(roomId, userId);
+                                newRoomManager.addMember(userId, ws);
+                                this.roomObj.set(roomId, newRoomManager);
+                            }
+
+                            ws.send(JSON.stringify({
+                                type: JOIN_ROOM,
+                                data: {
+                                    user,
+                                    roomId,
+                                    message: "You have joined the room as an admin"
+                                }
+                            }))
+
                         }else{
                             // Ask the admin to accept the user"
                             const adminId = this.rooms.get(roomId);
@@ -46,7 +66,7 @@ export class ChatManager {
                                     }
                                 }))
                             }else{
-                                ws.send(JSON.stringify({ type: ROOM_NOT_FOUND, data: { roomId } }));
+                                ws.send(JSON.stringify({ type: ADMIN_NOT_IN_ROOM, data: { roomId } }));
                             }
                         }
                     }
@@ -58,15 +78,23 @@ export class ChatManager {
     }
 
     public async acceptUser(ws:WebSocket, roomId: string, user: any){
-        const { userId } = JSON.parse(user.toString());
+        const { userId } = JSON.parse(user.toString()).id;
 
         await createNewMember(userId, roomId)
                 .then((response) => {
                     if(response.success){
+                        // Add the user to the room
+
+                        const roomManager = this.roomObj.get(roomId);
+                        if(roomManager) {
+                            roomManager.addMember(userId, ws);
+                        }
+
+                        // Send a message to the user that he has been accepted
                         ws.send(JSON.stringify({
                             type: JOIN_ROOM,
                             data: {
-                                userId,
+                                user,
                                 roomId,
                                 message: "You have been accepted to the room"
                             }
@@ -79,7 +107,7 @@ export class ChatManager {
                             adminWs.send(JSON.stringify({
                                 type: JOIN_ROOM,
                                 data: {
-                                    userId,
+                                    user,
                                     roomId,
                                     message: "The user has been accepted to the room"
                                 }
