@@ -14,6 +14,14 @@ export class ChatManager {
         this.roomObj = new Map<string, RoomManager>();
     }
 
+    public initRooms(roomId: string, adminId: string) {
+        this.rooms.set(roomId, adminId);
+    }
+
+    public clearRooms() {
+        this.rooms.clear();
+    }
+
     public addRoom(ws: WebSocket, data: ROOM){
         const { roomId, adminId } = data;
 
@@ -22,11 +30,14 @@ export class ChatManager {
     }
 
     public async joinRoom(ws: WebSocket, roomId: string, user: any){
-        const { userId } = JSON.parse(user.toString())?.id;
+        const userId = user?.id;
+
+        console.log('User trying to join room:', userId, roomId);
 
         if(this.rooms.has(roomId)){
             await createNewMember(userId, roomId)
                 .then((res) => {
+                    console.log('Response from createNewMember:', res);
                     if(res.success){
                         if(res.isAdmin){
                             // Join him to the room
@@ -46,6 +57,7 @@ export class ChatManager {
                                 type: JOIN_ROOM,
                                 data: {
                                     user,
+                                    isAdmin: true,
                                     roomId,
                                     message: "You have joined the room as an admin"
                                 }
@@ -55,6 +67,8 @@ export class ChatManager {
                             // Ask the admin to accept the user"
                             const adminId = this.rooms.get(roomId);
                             const adminWs = this.admin.get(adminId!);
+
+                            console.log('Admin WebSocket:', adminWs);
 
                             if(adminWs){
                                 adminWs.send(JSON.stringify({
@@ -79,7 +93,7 @@ export class ChatManager {
     }
 
     public async acceptUser(ws:WebSocket, roomId: string, user: any){
-        const { userId } = JSON.parse(user.toString()).id;
+        const userId = user.id;
 
         await createNewMember(userId, roomId)
                 .then((response) => {

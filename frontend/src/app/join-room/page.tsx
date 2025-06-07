@@ -130,11 +130,11 @@ function JoinRoom() {
 
   const joinRoomById = (roomId: string) => {
     if (!roomId || !user) return;
-    router.push(`/room/${roomId}/waiting`);
+    router.push(`/join-room/${roomId}/waiting`);
   };
 
   const joinRoom = (id: string) => {
-    router.push(`/room/${id}/waiting`);
+    router.push(`/join-room/${id}/waiting`);
   };
 
   if (!isSignedIn || !socket) {

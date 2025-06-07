@@ -19,12 +19,33 @@ class RoomManager {
         this.members = new Map();
         this.muted = new Set();
     }
-    addMember(userId, ws) {
-        this.members.set(userId, ws);
+    addMember(user, ws) {
+        this.members.set(user.id, ws);
+        const payload = JSON.stringify({
+            type: types_1.MEMBERS_UPDATE,
+            data: {
+                user
+            },
+        });
+        for (const [, memberWs] of this.members) {
+            if (memberWs == this.members.get(user.id))
+                continue;
+            memberWs.send(payload);
+        }
     }
-    removeMember(userId) {
-        this.members.delete(userId);
-        this.muted.delete(userId);
+    removeMember(user) {
+        const payload = JSON.stringify({
+            type: types_1.REMOVED,
+            data: {
+                user
+            },
+        });
+        for (const [, memberWs] of this.members) {
+            // if(memberWs == this.members.get(user.id)) continue;
+            memberWs.send(payload);
+        }
+        this.members.delete(user.id);
+        this.muted.delete(user.id);
     }
     muteMember(userId) {
         this.muted.add(userId);
@@ -51,13 +72,13 @@ class RoomManager {
             });
         });
     }
-    handleMessage(senderId, message) {
+    handleMessage(sender, message) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.isMuted(senderId))
+            if (this.isMuted(sender.id))
                 return;
             const member = yield __1.prisma.member.findFirst({
                 where: {
-                    userId: senderId,
+                    userId: sender.id,
                     roomId: this.roomId,
                 },
             });
@@ -73,13 +94,15 @@ class RoomManager {
             const payload = JSON.stringify({
                 type: types_1.NEW_MESSAGE,
                 data: {
-                    userId: senderId,
+                    id: chat.id,
+                    userId: sender.id,
+                    userName: sender.name,
                     message: chat.message,
                     createdAt: chat.createdAt,
                 },
             });
             for (const [, memberWs] of this.members) {
-                if (memberWs == this.members.get(senderId))
+                if (memberWs == this.members.get(sender.id))
                     continue;
                 memberWs.send(payload);
             }

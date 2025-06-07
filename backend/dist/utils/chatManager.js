@@ -12,11 +12,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatManager = void 0;
 const types_1 = require("../types");
 const room_controller_1 = require("../controller/room.controller");
+const roomManager_1 = require("./roomManager");
 class ChatManager {
     constructor() {
         this.rooms = new Map();
         this.admin = new Map();
         this.roomObj = new Map();
+    }
+    initRooms(roomId, adminId) {
+        this.rooms.set(roomId, adminId);
+    }
+    clearRooms() {
+        this.rooms.clear();
     }
     addRoom(ws, data) {
         const { roomId, adminId } = data;
@@ -24,25 +31,46 @@ class ChatManager {
         this.admin.set(adminId, ws);
     }
     joinRoom(ws, roomId, user) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const { userId } = (_a = JSON.parse(user.toString())) === null || _a === void 0 ? void 0 : _a.id;
+            const userId = user === null || user === void 0 ? void 0 : user.id;
+            console.log('User trying to join room:', userId, roomId);
             if (this.rooms.has(roomId)) {
                 yield (0, room_controller_1.createNewMember)(userId, roomId)
                     .then((res) => {
+                    console.log('Response from createNewMember:', res);
                     if (res.success) {
                         if (res.isAdmin) {
                             // Join him to the room
                             this.admin.set(userId, ws);
+                            const roomManager = this.roomObj.get(roomId);
+                            if (roomManager) {
+                                roomManager.addMember(user, ws);
+                            }
+                            else {
+                                // Create a new RoomManager if it doesn't exist
+                                const newRoomManager = new roomManager_1.RoomManager(roomId, userId);
+                                newRoomManager.addMember(user, ws);
+                                this.roomObj.set(roomId, newRoomManager);
+                            }
+                            ws.send(JSON.stringify({
+                                type: types_1.JOIN_ROOM,
+                                data: {
+                                    user,
+                                    roomId,
+                                    message: "You have joined the room as an admin"
+                                }
+                            }));
                         }
                         else {
                             // Ask the admin to accept the user"
                             const adminId = this.rooms.get(roomId);
                             const adminWs = this.admin.get(adminId);
+                            console.log('Admin WebSocket:', adminWs);
                             if (adminWs) {
                                 adminWs.send(JSON.stringify({
                                     type: types_1.PERMISSION,
                                     data: {
+                                        ws,
                                         user,
                                         roomId,
                                         message: "A new user is trying to join the room, please accept or reject him"
@@ -50,7 +78,7 @@ class ChatManager {
                                 }));
                             }
                             else {
-                                ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
+                                ws.send(JSON.stringify({ type: types_1.ADMIN_NOT_IN_ROOM, data: { roomId } }));
                             }
                         }
                     }
@@ -63,14 +91,20 @@ class ChatManager {
     }
     acceptUser(ws, roomId, user) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { userId } = JSON.parse(user.toString());
+            const userId = user.id;
             yield (0, room_controller_1.createNewMember)(userId, roomId)
                 .then((response) => {
                 if (response.success) {
+                    // Add the user to the room
+                    const roomManager = this.roomObj.get(roomId);
+                    if (roomManager) {
+                        roomManager.addMember(user, ws);
+                    }
+                    // Send a message to the user that he has been accepted
                     ws.send(JSON.stringify({
                         type: types_1.JOIN_ROOM,
                         data: {
-                            userId,
+                            user,
                             roomId,
                             message: "You have been accepted to the room"
                         }
@@ -81,7 +115,7 @@ class ChatManager {
                         adminWs.send(JSON.stringify({
                             type: types_1.JOIN_ROOM,
                             data: {
-                                userId,
+                                user,
                                 roomId,
                                 message: "The user has been accepted to the room"
                             }
@@ -94,14 +128,48 @@ class ChatManager {
             });
         });
     }
-    sendMessage(ws, userId, roomId, message) {
+    rejectUser(ws, roomId, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const adminId = this.rooms.get(roomId);
+            const adminWs = this.admin.get(adminId);
+            if (adminWs) {
+                adminWs.send(JSON.stringify({
+                    type: types_1.PERMISSION,
+                    data: {
+                        ws,
+                        user,
+                        roomId,
+                        message: "The user has been rejected from the room"
+                    }
+                }));
+            }
+            // Notify the user that he has been rejected
+            ws.send(JSON.stringify({
+                type: types_1.PERMISSION,
+                data: {
+                    message: "You have been rejected from the room",
+                    roomId
+                }
+            }));
+        });
+    }
+    removeUser(roomId, user, adminId) {
+        const roomManager = this.roomObj.get(roomId);
+        if (!roomManager)
+            return;
+        if (!roomManager.isAdmin(adminId)) {
+            return; // Only admin can remove users
+        }
+        roomManager.removeMember(user);
+    }
+    sendMessage(ws, user, roomId, message) {
         return __awaiter(this, void 0, void 0, function* () {
             const roomManager = this.roomObj.get(roomId);
             if (!roomManager) {
                 ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
                 return;
             }
-            roomManager.handleMessage(userId, message);
+            roomManager.handleMessage(user, message);
         });
     }
     endRoom(roomId, requesterId) {

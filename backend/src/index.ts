@@ -9,6 +9,7 @@ import { PrismaClient } from '../generated/prisma'
 import roomRouter from "./routes/room.routes"
 import { ChatManager } from './utils/chatManager';
 import { ACCEPT_USER, CREATE_ROOM, JOIN_ROOM, NEW_MESSAGE, REMOVE_USER } from './types';
+import { initializeActiveRooms } from './controller/room.controller';
 
 export const app = express();
 const PORT = process.env.PORT || 8080;
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }))
 export const prisma = new PrismaClient()
 
 const chatManager = new ChatManager();
+initializeActiveRooms(chatManager);
 
 wss.on('connection', (ws) => {
   console.log('A new client connected');
@@ -44,6 +46,7 @@ wss.on('connection', (ws) => {
     }
 
     if(type === JOIN_ROOM){
+      console.log('Received JOIN_ROOM message:', data);
       chatManager.joinRoom(ws, data.roomId, data.user);
     }
 

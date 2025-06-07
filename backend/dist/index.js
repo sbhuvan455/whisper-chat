@@ -13,6 +13,7 @@ const prisma_1 = require("../generated/prisma");
 const room_routes_1 = __importDefault(require("./routes/room.routes"));
 const chatManager_1 = require("./utils/chatManager");
 const types_1 = require("./types");
+const room_controller_1 = require("./controller/room.controller");
 exports.app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
 const server = (0, http_1.createServer)(exports.app);
@@ -25,6 +26,7 @@ exports.app.use((0, cors_1.default)({
 exports.app.use(express_1.default.urlencoded({ extended: true }));
 exports.prisma = new prisma_1.PrismaClient();
 const chatManager = new chatManager_1.ChatManager();
+(0, room_controller_1.initializeActiveRooms)(chatManager);
 wss.on('connection', (ws) => {
     console.log('A new client connected');
     ws.on('error', console.error);
@@ -36,10 +38,17 @@ wss.on('connection', (ws) => {
             chatManager.addRoom(ws, data);
         }
         if (type === types_1.JOIN_ROOM) {
+            console.log('Received JOIN_ROOM message:', data);
             chatManager.joinRoom(ws, data.roomId, data.user);
         }
         if (type === types_1.ACCEPT_USER) {
-            chatManager.acceptUser(ws, data.roomId, data.user);
+            chatManager.acceptUser(data.ws, data.roomId, data.user);
+        }
+        if (type === types_1.NEW_MESSAGE) {
+            chatManager.sendMessage(ws, data.user, data.roomId, data.message);
+        }
+        if (type === types_1.REMOVE_USER) {
+            chatManager.removeUser(data.roomId, data.user, data.adminId);
         }
     });
 });

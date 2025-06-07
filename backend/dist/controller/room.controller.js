@@ -9,9 +9,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.acceptUser = exports.createNewMember = exports.createRoom = void 0;
+exports.acceptUser = exports.createNewMember = exports.createRoom = exports.initializeActiveRooms = void 0;
 // import { clerkClient, getAuth, User } from '@clerk/express'
 const __1 = require("..");
+const initializeActiveRooms = (chatManager) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const activeRooms = yield __1.prisma.room.findMany({
+            where: {
+                isActive: true
+            },
+            select: {
+                id: true,
+                adminId: true
+            }
+        });
+        if (!activeRooms.length) {
+            // No active rooms found, clear the map
+            chatManager.clearRooms();
+            console.log('No active rooms found. Cleared ChatManager rooms.');
+            return;
+        }
+        // Populate the rooms map
+        activeRooms.forEach(room => {
+            chatManager.initRooms(room.id, room.adminId);
+        });
+        console.log(`Initialized ${activeRooms.length} active rooms.`);
+    }
+    catch (error) {
+        console.error('Error initializing active rooms:', error);
+    }
+});
+exports.initializeActiveRooms = initializeActiveRooms;
 const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('Creating room with data:', req.body);
     const { title, description } = req.body;

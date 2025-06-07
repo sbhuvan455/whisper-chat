@@ -20,6 +20,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
+        console.log("Initializing WebSocket connection to:", WS_URL);
         const ws = new WebSocket(WS_URL);
 
         ws.onopen = () => {

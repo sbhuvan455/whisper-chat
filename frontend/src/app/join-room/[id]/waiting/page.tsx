@@ -16,9 +16,12 @@ const WaitingRoom = () => {
 
     const [adminNotInRoom, setAdminNotInRoom] = useState(false)
 
-    useEffect(() => {
-        if (!socket || !user || !roomId) return
+    console.log('WaitingRoom component rendered with roomId:', roomId, 'user:', user)
 
+    useEffect(() => {
+        console.log('WaitingRoom component mounted')
+        if (!socket || !user || !roomId) return
+        console.log('WaitingRoom component mounted', user)
         const message = {
             type: JOIN_ROOM,
             data: {
@@ -27,6 +30,8 @@ const WaitingRoom = () => {
             }
         }
 
+        console.log('Sending JOIN_ROOM message:', message)
+
         socket.send(JSON.stringify(message))
 
         const handleMessage = (event: MessageEvent) => {
@@ -34,7 +39,7 @@ const WaitingRoom = () => {
                 const { type, data } = JSON.parse(event.data)
 
                 if (type === JOIN_ROOM && data.roomId === roomId) {
-                    router.push(`/room/${roomId}`)
+                    router.push(`/join-room/${roomId}`)
                 }
 
                 if (type === ADMIN_NOT_IN_ROOM && data.roomId === roomId) {

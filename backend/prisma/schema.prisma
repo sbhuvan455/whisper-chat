@@ -34,8 +34,6 @@ model Member {
   Chats     Chat[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([userId, roomId])
 }
 
 model Chat {

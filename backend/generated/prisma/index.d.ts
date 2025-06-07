@@ -4650,7 +4650,6 @@ export namespace Prisma {
 
   export type MemberWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    userId_roomId?: MemberUserIdRoomIdCompoundUniqueInput
     AND?: MemberWhereInput | MemberWhereInput[]
     OR?: MemberWhereInput[]
     NOT?: MemberWhereInput | MemberWhereInput[]
@@ -4660,7 +4659,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Member"> | Date | string
     Room?: XOR<RoomScalarRelationFilter, RoomWhereInput>
     Chats?: ChatListRelationFilter
-  }, "id" | "userId_roomId">
+  }, "id">
 
   export type MemberOrderByWithAggregationInput = {
     id?: SortOrder
@@ -5119,11 +5118,6 @@ export namespace Prisma {
   export type RoomScalarRelationFilter = {
     is?: RoomWhereInput
     isNot?: RoomWhereInput
-  }
-
-  export type MemberUserIdRoomIdCompoundUniqueInput = {
-    userId: string
-    roomId: string
   }
 
   export type MemberCountOrderByAggregateInput = {

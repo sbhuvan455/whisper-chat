@@ -1,5 +1,36 @@
 // import { clerkClient, getAuth, User } from '@clerk/express'
 import { prisma } from '..';
+import { ChatManager } from '../utils/chatManager';
+
+export const initializeActiveRooms = async (chatManager: ChatManager) => {
+  try {
+    const activeRooms = await prisma.room.findMany({
+      where: {
+        isActive: true
+      },
+      select: {
+        id: true,
+        adminId: true
+      }
+    });
+
+    if (!activeRooms.length) {
+      // No active rooms found, clear the map
+      chatManager.clearRooms();
+      console.log('No active rooms found. Cleared ChatManager rooms.');
+      return;
+    }
+
+    // Populate the rooms map
+    activeRooms.forEach(room => {
+      chatManager.initRooms(room.id, room.adminId);
+    });
+
+    console.log(`Initialized ${activeRooms.length} active rooms.`);
+  } catch (error) {
+    console.error('Error initializing active rooms:', error);
+  }
+};
 
 export const createRoom = async (req: any, res: any) => {
     console.log('Creating room with data:', req.body);
