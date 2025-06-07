@@ -8,7 +8,7 @@ import { PrismaClient } from '../generated/prisma'
 
 import roomRouter from "./routes/room.routes"
 import { ChatManager } from './utils/chatManager';
-import { ACCEPT_USER, CREATE_ROOM, JOIN_ROOM } from './types';
+import { ACCEPT_USER, CREATE_ROOM, JOIN_ROOM, NEW_MESSAGE, REMOVE_USER } from './types';
 
 export const app = express();
 const PORT = process.env.PORT || 8080;
@@ -48,7 +48,15 @@ wss.on('connection', (ws) => {
     }
 
     if(type === ACCEPT_USER){
-      chatManager.acceptUser(ws, data.roomId, data.user);
+      chatManager.acceptUser(data.ws, data.roomId, data.user);
+    }
+
+    if(type === NEW_MESSAGE){
+      chatManager.sendMessage(ws, data.user, data.roomId, data.message);
+    }
+
+    if(type === REMOVE_USER) {
+      chatManager.removeUser(data.roomId, data.user, data.adminId);
     }
   })
 });

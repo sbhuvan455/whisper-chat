@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { ROOM, ROOM_NOT_FOUND, JOIN_ROOM, PERMISSION, User, ADMIN_NOT_IN_ROOM } from '../types';
+import { ROOM, ROOM_NOT_FOUND, JOIN_ROOM, PERMISSION, User, ADMIN_NOT_IN_ROOM, REMOVED } from '../types';
 import { createNewMember } from '../controller/room.controller';
 import { RoomManager } from './roomManager';
 
@@ -34,11 +34,11 @@ export class ChatManager {
 
                             const roomManager = this.roomObj.get(roomId);
                             if(roomManager) {
-                                roomManager.addMember(userId, ws);
+                                roomManager.addMember(user, ws);
                             }else {
                                 // Create a new RoomManager if it doesn't exist
                                 const newRoomManager = new RoomManager(roomId, userId);
-                                newRoomManager.addMember(userId, ws);
+                                newRoomManager.addMember(user, ws);
                                 this.roomObj.set(roomId, newRoomManager);
                             }
 
@@ -60,6 +60,7 @@ export class ChatManager {
                                 adminWs.send(JSON.stringify({
                                     type: PERMISSION,
                                     data: {
+                                        ws,
                                         user,
                                         roomId,
                                         message: "A new user is trying to join the room, please accept or reject him"
@@ -87,7 +88,7 @@ export class ChatManager {
 
                         const roomManager = this.roomObj.get(roomId);
                         if(roomManager) {
-                            roomManager.addMember(userId, ws);
+                            roomManager.addMember(user, ws);
                         }
 
                         // Send a message to the user that he has been accepted
@@ -120,7 +121,45 @@ export class ChatManager {
                 })
     }
 
-    public async sendMessage(ws: WebSocket, userId: string, roomId: string, message: string) {
+    public async rejectUser(ws: WebSocket, roomId: string, user: any) {
+
+        const adminId = this.rooms.get(roomId);
+        const adminWs = this.admin.get(adminId!);
+
+        if(adminWs){
+            adminWs.send(JSON.stringify({
+                type: PERMISSION,
+                data: {
+                    ws,
+                    user,
+                    roomId,
+                    message: "The user has been rejected from the room"
+                }
+            }))
+        }
+
+        // Notify the user that he has been rejected
+        ws.send(JSON.stringify({
+            type: PERMISSION,
+            data: {
+                message: "You have been rejected from the room",
+                roomId
+            }
+        }));
+    }
+
+    public removeUser(roomId: string, user: any, adminId: string) {
+        const roomManager = this.roomObj.get(roomId);
+        if (!roomManager) return;
+
+        if (!roomManager.isAdmin(adminId)) {
+            return; // Only admin can remove users
+        }
+
+        roomManager.removeMember(user);
+    }
+
+    public async sendMessage(ws: WebSocket, user: string, roomId: string, message: string) {
         const roomManager = this.roomObj.get(roomId);
 
         if(!roomManager) {
@@ -128,7 +167,7 @@ export class ChatManager {
             return;
         }
 
-        roomManager.handleMessage(userId, message);
+        roomManager.handleMessage(user, message);
     }
 
     public endRoom(roomId: string, requesterId: string) {

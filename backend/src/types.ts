@@ -18,3 +18,6 @@ export const ADMIN_NOT_IN_ROOM = 'admin-not-in-room';
 export const PERMISSION = 'permission';
 export const ACCEPT_USER = 'accept-user';
 export const NEW_MESSAGE = 'new-message';
+export const MEMBERS_UPDATE = 'members-update';
+export const REMOVE_USER = 'remove-user';
+export const REMOVED = 'removed';
