@@ -56,6 +56,7 @@ class ChatManager {
                                 type: types_1.JOIN_ROOM,
                                 data: {
                                     user,
+                                    isAdmin: true,
                                     roomId,
                                     message: "You have joined the room as an admin"
                                 }
@@ -65,7 +66,7 @@ class ChatManager {
                             // Ask the admin to accept the user"
                             const adminId = this.rooms.get(roomId);
                             const adminWs = this.admin.get(adminId);
-                            console.log('Admin WebSocket:', adminWs);
+                            console.log('Admin WebSocket:', user);
                             if (adminWs) {
                                 adminWs.send(JSON.stringify({
                                     type: types_1.PERMISSION,

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { EMOJI_LIST } from "@/components/emoji"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Send,
@@ -56,84 +57,11 @@ interface ChatMessage {
 
 interface Member {
   id: string
-  name: string
+  fullName: string
   avatar: string
   muted?: boolean
   isOnline?: boolean
 }
-
-const EMOJI_LIST = [
-  "😀",
-  "😃",
-  "😄",
-  "😁",
-  "😆",
-  "😅",
-  "😂",
-  "🤣",
-  "😊",
-  "😇",
-  "🙂",
-  "🙃",
-  "😉",
-  "😌",
-  "😍",
-  "🥰",
-  "😘",
-  "😗",
-  "😙",
-  "😚",
-  "😋",
-  "😛",
-  "😝",
-  "😜",
-  "🤪",
-  "🤨",
-  "🧐",
-  "🤓",
-  "😎",
-  "🤩",
-  "🥳",
-  "😏",
-  "😒",
-  "😞",
-  "😔",
-  "😟",
-  "😕",
-  "🙁",
-  "☹️",
-  "😣",
-  "👍",
-  "👎",
-  "👌",
-  "✌️",
-  "🤞",
-  "🤟",
-  "🤘",
-  "👏",
-  "🙌",
-  "👐",
-  "❤️",
-  "🧡",
-  "💛",
-  "💚",
-  "💙",
-  "💜",
-  "🖤",
-  "🤍",
-  "🤎",
-  "💔",
-  "🔥",
-  "⭐",
-  "🌟",
-  "✨",
-  "🎉",
-  "🎊",
-  "💯",
-  "✅",
-  "❌",
-  "⚡",
-]
 
 export default function RoomPage() {
   const { id: roomId } = useParams()
@@ -168,16 +96,17 @@ export default function RoomPage() {
           setMessages((prev) => [...prev, data])
           break
         case MEMBERS_UPDATE:
-          setMembers(data)
+          setMembers((prevMember) => [...prevMember, data.user])
           break
         case PERMISSION:
           setPending((prevPending) => [...prevPending, data])
+          console.log("Pending users:", data)
           break
         case DELETE_MESSAGE:
           setMessages((prev) => prev.filter((msg) => msg.id !== data.messageId))
           break
         case REMOVED:
-          alert(`${data.user.name} has been removed from the room.`)
+          alert(`${data.user.fullName} has been removed from the room.`)
 
           if (data.user.id === user?.id) {
             redirect("/join-room")
@@ -275,7 +204,7 @@ export default function RoomPage() {
     socket?.send(
       JSON.stringify({
         type: ACCEPT_USER,
-        data: { roomId, user: pendingUser },
+        data: pendingUser,
       }),
     )
   }
@@ -307,9 +236,8 @@ export default function RoomPage() {
     return (
       <div
         key={msg.id}
-        className={`flex items-start gap-3 p-4 rounded-lg transition-colors hover:bg-muted/50 ${
-          isOwnMessage ? "bg-primary/5" : ""
-        }`}
+        className={`flex items-start gap-3 p-4 rounded-lg transition-colors hover:bg-muted/50 ${isOwnMessage ? "bg-primary/5" : ""
+          }`}
       >
         <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarImage src={`/placeholder-user.jpg`} />
@@ -404,13 +332,13 @@ export default function RoomPage() {
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                                <AvatarFallback>{member.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{member?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-sm">{member.name}</p>
+                                <p className="font-medium text-sm">{member?.fullName}</p>
                                 <div className="flex items-center gap-2">
                                   <div
-                                    className={`h-2 w-2 rounded-full ${member.isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                                    className={`h-2 w-2 rounded-full ${member?.isOnline ? "bg-green-500" : "bg-gray-400"}`}
                                   />
                                   <span className="text-xs text-muted-foreground">
                                     {member.isOnline ? "Online" : "Offline"}
@@ -458,10 +386,10 @@ export default function RoomPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback>{p.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{p.user?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-sm">{p.user.name}</p>
+                                <p className="font-medium text-sm">{p.user.fullName}</p>
                                 <p className="text-xs text-muted-foreground">Requesting access</p>
                               </div>
                             </div>
@@ -506,14 +434,14 @@ export default function RoomPage() {
                     <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                        <AvatarFallback>{member.name.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>{member?.fullName.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-sm">{member.name}</p>
+                        <p className="font-medium text-sm">{member?.fullName}</p>
                         <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${member.isOnline ? "bg-green-500" : "bg-gray-400"}`} />
+                          <div className={`h-2 w-2 rounded-full ${member?.isOnline ? "bg-green-500" : "bg-gray-400"}`} />
                           <span className="text-xs text-muted-foreground">
-                            {member.isOnline ? "Online" : "Offline"}
+                            {member?.isOnline ? "Online" : "Offline"}
                           </span>
                         </div>
                       </div>
