@@ -18,6 +18,7 @@ class ChatManager {
         this.rooms = new Map();
         this.admin = new Map();
         this.roomObj = new Map();
+        this.pendingMembers = new Map();
     }
     initRooms(roomId, adminId) {
         this.rooms.set(roomId, adminId);
@@ -66,12 +67,15 @@ class ChatManager {
                             // Ask the admin to accept the user"
                             const adminId = this.rooms.get(roomId);
                             const adminWs = this.admin.get(adminId);
+                            if (!this.pendingMembers.has(roomId)) {
+                                this.pendingMembers.set(roomId, new Map());
+                            }
+                            this.pendingMembers.get(roomId).set(userId, ws);
                             console.log('Admin WebSocket:', user);
                             if (adminWs) {
                                 adminWs.send(JSON.stringify({
                                     type: types_1.PERMISSION,
                                     data: {
-                                        ws,
                                         user,
                                         roomId,
                                         message: "A new user is trying to join the room, please accept or reject him"
@@ -90,19 +94,26 @@ class ChatManager {
             }
         });
     }
-    acceptUser(ws, roomId, user) {
+    acceptUser(roomId, user) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const userId = user.id;
-            yield (0, room_controller_1.createNewMember)(userId, roomId)
+            const pending = (_a = this.pendingMembers.get(roomId)) === null || _a === void 0 ? void 0 : _a.get(userId);
+            if (!pending) {
+                console.log(`No pending connection found for ${userId} in room ${roomId}`);
+                return;
+            }
+            yield (0, room_controller_1.acceptUser)(userId, roomId)
                 .then((response) => {
+                var _a;
                 if (response.success) {
                     // Add the user to the room
                     const roomManager = this.roomObj.get(roomId);
                     if (roomManager) {
-                        roomManager.addMember(user, ws);
+                        roomManager.addMember(user, pending);
                     }
                     // Send a message to the user that he has been accepted
-                    ws.send(JSON.stringify({
+                    pending.send(JSON.stringify({
                         type: types_1.JOIN_ROOM,
                         data: {
                             user,
@@ -110,18 +121,7 @@ class ChatManager {
                             message: "You have been accepted to the room"
                         }
                     }));
-                    const adminId = this.rooms.get(roomId);
-                    const adminWs = this.admin.get(adminId);
-                    if (adminWs) {
-                        adminWs.send(JSON.stringify({
-                            type: types_1.JOIN_ROOM,
-                            data: {
-                                user,
-                                roomId,
-                                message: "The user has been accepted to the room"
-                            }
-                        }));
-                    }
+                    (_a = this.pendingMembers.get(roomId)) === null || _a === void 0 ? void 0 : _a.delete(userId);
                 }
             })
                 .catch((err) => {
@@ -165,12 +165,16 @@ class ChatManager {
     }
     sendMessage(ws, user, roomId, message) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("I am sending the message", message);
             const roomManager = this.roomObj.get(roomId);
+            console.log("Here");
             if (!roomManager) {
                 ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
+                console.log("room nhi mila bhai");
                 return;
             }
             roomManager.handleMessage(user, message);
+            console.log("Ho gya join");
         });
     }
     endRoom(roomId, requesterId) {

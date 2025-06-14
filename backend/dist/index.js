@@ -43,7 +43,7 @@ wss.on('connection', (ws) => {
         }
         if (type === types_1.ACCEPT_USER) {
             console.log('Received ACCEPT_USER message:', data);
-            chatManager.acceptUser(data.ws, data.roomId, data.user);
+            chatManager.acceptUser(data.roomId, data.user);
         }
         if (type === types_1.NEW_MESSAGE) {
             chatManager.sendMessage(ws, data.user, data.roomId, data.message);

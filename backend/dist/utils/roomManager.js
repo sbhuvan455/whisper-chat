@@ -74,6 +74,7 @@ class RoomManager {
     }
     handleMessage(sender, message) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("I am here in the room manager sending messages");
             if (this.isMuted(sender.id))
                 return;
             const member = yield __1.prisma.member.findFirst({
@@ -82,6 +83,7 @@ class RoomManager {
                     roomId: this.roomId,
                 },
             });
+            console.log("It's not done yet");
             if (!member)
                 return;
             const chat = yield __1.prisma.chat.create({
@@ -91,16 +93,18 @@ class RoomManager {
                     MemberId: member.id,
                 },
             });
+            console.log("It's not done yet");
             const payload = JSON.stringify({
                 type: types_1.NEW_MESSAGE,
                 data: {
-                    id: chat.id,
-                    userId: sender.id,
-                    userName: sender.name,
-                    message: chat.message,
-                    createdAt: chat.createdAt,
+                    id: chat === null || chat === void 0 ? void 0 : chat.id,
+                    user: sender,
+                    type: 'text',
+                    message: chat === null || chat === void 0 ? void 0 : chat.message,
+                    createdAt: chat === null || chat === void 0 ? void 0 : chat.createdAt,
                 },
             });
+            console.log("It's done now");
             for (const [, memberWs] of this.members) {
                 if (memberWs == this.members.get(sender.id))
                     continue;

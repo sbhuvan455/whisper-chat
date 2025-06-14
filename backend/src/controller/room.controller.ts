@@ -112,9 +112,9 @@ export const createNewMember = async (userId: string, roomId: string) => {
     
 }
 
-export const acceptUser = async (roomId: string, user: any) => {
+export const acceptUser = async (userId: string, roomId: string) => {
     try {
-        const { userId } = JSON.parse(user.toString()).id;
+        // const { userId } = JSON.parse(user.toString()).id;
 
         if(!userId) throw new Error("User Id Not Found")
 

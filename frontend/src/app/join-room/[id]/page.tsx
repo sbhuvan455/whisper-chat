@@ -42,13 +42,14 @@ import {
   MEMBERS_UPDATE,
   REMOVED,
 } from "../../../../types"
+import { User } from "@clerk/nextjs/server"
 
 interface ChatMessage {
   id: string
   userId: string
-  userName: string
-  content: string
-  timestamp: string
+  user: User
+  message: string
+  createdAt: string
   type?: "text" | "image" | "file"
   fileUrl?: string
   fileName?: string
@@ -93,6 +94,7 @@ export default function RoomPage() {
 
       switch (type) {
         case NEW_MESSAGE:
+          console.log("New message received:", data)
           setMessages((prev) => [...prev, data])
           break
         case MEMBERS_UPDATE:
@@ -126,7 +128,7 @@ export default function RoomPage() {
     const msg = {
       type: NEW_MESSAGE,
       data: {
-        messages: input,
+        message: input,
         user,
         roomId,
       },
@@ -200,22 +202,26 @@ export default function RoomPage() {
     )
   }
 
-  const acceptUser = (pendingUser: string) => {
+  const acceptUser = (pendingUser: any) => {
     socket?.send(
       JSON.stringify({
         type: ACCEPT_USER,
         data: pendingUser,
       }),
     )
+
+    setPending((prevPending) => prevPending.filter((p) => p.user.id === pendingUser.user.id))
   }
 
-  const rejectUser = (pendingUser: string) => {
+  const rejectUser = (pendingUser: any) => {
     socket?.send(
       JSON.stringify({
         type: REJECT_USER,
         data: { roomId, user: pendingUser },
       }),
     )
+
+    setPending((prevPending) => prevPending.filter((p) => p.user.id === pendingUser.user.id))
   }
 
   const formatFileSize = (bytes: number) => {
@@ -240,14 +246,14 @@ export default function RoomPage() {
           }`}
       >
         <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src={`/placeholder-user.jpg`} />
-          <AvatarFallback className="text-xs">{msg.userName.charAt(0).toUpperCase()}</AvatarFallback>
+          <AvatarImage src={msg.user.imageUrl} />
+          <AvatarFallback className="text-xs">{msg.user.username?.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-sm">{msg.userName}</span>
-            <span className="text-xs text-muted-foreground">{formatTime(msg.timestamp)}</span>
+            <span className="font-semibold text-sm">{msg.user?.username || 'U'}</span>
+            <span className="text-xs text-muted-foreground">{formatTime(msg.createdAt)}</span>
             {isOwnMessage && (
               <Badge variant="secondary" className="text-xs">
                 You
@@ -274,7 +280,7 @@ export default function RoomPage() {
               </div>
             </div>
           ) : (
-            <p className="text-sm leading-relaxed break-words">{msg.content}</p>
+            <p className="text-sm leading-relaxed break-words">{msg.message}</p>
           )}
         </div>
 

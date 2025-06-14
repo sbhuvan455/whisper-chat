@@ -109,9 +109,9 @@ const createNewMember = (userId, roomId) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.createNewMember = createNewMember;
-const acceptUser = (roomId, user) => __awaiter(void 0, void 0, void 0, function* () {
+const acceptUser = (userId, roomId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { userId } = JSON.parse(user.toString()).id;
+        // const { userId } = JSON.parse(user.toString()).id;
         if (!userId)
             throw new Error("User Id Not Found");
         const room = yield __1.prisma.room.findUnique({
