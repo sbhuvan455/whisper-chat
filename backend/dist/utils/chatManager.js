@@ -34,9 +34,9 @@ class ChatManager {
     joinRoom(ws, roomId, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = user === null || user === void 0 ? void 0 : user.id;
-            console.log('User trying to join room:', userId, roomId);
+            console.log('User trying to join room:', user, roomId);
             if (this.rooms.has(roomId)) {
-                yield (0, room_controller_1.createNewMember)(userId, roomId)
+                yield (0, room_controller_1.createNewMember)(user, roomId)
                     .then((res) => {
                     console.log('Response from createNewMember:', res);
                     if (res.success) {
@@ -103,7 +103,7 @@ class ChatManager {
                 console.log(`No pending connection found for ${userId} in room ${roomId}`);
                 return;
             }
-            yield (0, room_controller_1.acceptUser)(userId, roomId)
+            yield (0, room_controller_1.acceptUser)(user, roomId)
                 .then((response) => {
                 var _a;
                 if (response.success) {
@@ -176,6 +176,14 @@ class ChatManager {
             roomManager.handleMessage(user, message);
             console.log("Ho gya join");
         });
+    }
+    deleteMessage(roomId, chatId, userId) {
+        const roomManager = this.roomObj.get(roomId);
+        if (!roomManager) {
+            console.log("Room not found for deleting message");
+            return;
+        }
+        roomManager.deleteMessage(chatId, userId);
     }
     endRoom(roomId, requesterId) {
         const adminId = this.rooms.get(roomId);

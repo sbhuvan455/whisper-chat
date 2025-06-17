@@ -2258,6 +2258,9 @@ export namespace Prisma {
   export type MemberMinAggregateOutputType = {
     id: string | null
     userId: string | null
+    image_url: string | null
+    fullName: string | null
+    muted: boolean | null
     roomId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -2266,6 +2269,9 @@ export namespace Prisma {
   export type MemberMaxAggregateOutputType = {
     id: string | null
     userId: string | null
+    image_url: string | null
+    fullName: string | null
+    muted: boolean | null
     roomId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -2274,6 +2280,9 @@ export namespace Prisma {
   export type MemberCountAggregateOutputType = {
     id: number
     userId: number
+    image_url: number
+    fullName: number
+    muted: number
     roomId: number
     createdAt: number
     updatedAt: number
@@ -2284,6 +2293,9 @@ export namespace Prisma {
   export type MemberMinAggregateInputType = {
     id?: true
     userId?: true
+    image_url?: true
+    fullName?: true
+    muted?: true
     roomId?: true
     createdAt?: true
     updatedAt?: true
@@ -2292,6 +2304,9 @@ export namespace Prisma {
   export type MemberMaxAggregateInputType = {
     id?: true
     userId?: true
+    image_url?: true
+    fullName?: true
+    muted?: true
     roomId?: true
     createdAt?: true
     updatedAt?: true
@@ -2300,6 +2315,9 @@ export namespace Prisma {
   export type MemberCountAggregateInputType = {
     id?: true
     userId?: true
+    image_url?: true
+    fullName?: true
+    muted?: true
     roomId?: true
     createdAt?: true
     updatedAt?: true
@@ -2381,6 +2399,9 @@ export namespace Prisma {
   export type MemberGroupByOutputType = {
     id: string
     userId: string
+    image_url: string | null
+    fullName: string
+    muted: boolean
     roomId: string
     createdAt: Date
     updatedAt: Date
@@ -2406,6 +2427,9 @@ export namespace Prisma {
   export type MemberSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
+    image_url?: boolean
+    fullName?: boolean
+    muted?: boolean
     roomId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -2417,6 +2441,9 @@ export namespace Prisma {
   export type MemberSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
+    image_url?: boolean
+    fullName?: boolean
+    muted?: boolean
     roomId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -2426,6 +2453,9 @@ export namespace Prisma {
   export type MemberSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
+    image_url?: boolean
+    fullName?: boolean
+    muted?: boolean
     roomId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -2435,12 +2465,15 @@ export namespace Prisma {
   export type MemberSelectScalar = {
     id?: boolean
     userId?: boolean
+    image_url?: boolean
+    fullName?: boolean
+    muted?: boolean
     roomId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type MemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["member"]>
+  export type MemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "image_url" | "fullName" | "muted" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["member"]>
   export type MemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Room?: boolean | RoomDefaultArgs<ExtArgs>
     Chats?: boolean | Member$ChatsArgs<ExtArgs>
@@ -2462,6 +2495,9 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
+      image_url: string | null
+      fullName: string
+      muted: boolean
       roomId: string
       createdAt: Date
       updatedAt: Date
@@ -2892,6 +2928,9 @@ export namespace Prisma {
   interface MemberFieldRefs {
     readonly id: FieldRef<"Member", 'String'>
     readonly userId: FieldRef<"Member", 'String'>
+    readonly image_url: FieldRef<"Member", 'String'>
+    readonly fullName: FieldRef<"Member", 'String'>
+    readonly muted: FieldRef<"Member", 'Boolean'>
     readonly roomId: FieldRef<"Member", 'String'>
     readonly createdAt: FieldRef<"Member", 'DateTime'>
     readonly updatedAt: FieldRef<"Member", 'DateTime'>
@@ -4455,6 +4494,9 @@ export namespace Prisma {
   export const MemberScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
+    image_url: 'image_url',
+    fullName: 'fullName',
+    muted: 'muted',
     roomId: 'roomId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -4631,6 +4673,9 @@ export namespace Prisma {
     NOT?: MemberWhereInput | MemberWhereInput[]
     id?: StringFilter<"Member"> | string
     userId?: StringFilter<"Member"> | string
+    image_url?: StringNullableFilter<"Member"> | string | null
+    fullName?: StringFilter<"Member"> | string
+    muted?: BoolFilter<"Member"> | boolean
     roomId?: StringFilter<"Member"> | string
     createdAt?: DateTimeFilter<"Member"> | Date | string
     updatedAt?: DateTimeFilter<"Member"> | Date | string
@@ -4641,6 +4686,9 @@ export namespace Prisma {
   export type MemberOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrder
+    image_url?: SortOrderInput | SortOrder
+    fullName?: SortOrder
+    muted?: SortOrder
     roomId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -4654,6 +4702,9 @@ export namespace Prisma {
     OR?: MemberWhereInput[]
     NOT?: MemberWhereInput | MemberWhereInput[]
     userId?: StringFilter<"Member"> | string
+    image_url?: StringNullableFilter<"Member"> | string | null
+    fullName?: StringFilter<"Member"> | string
+    muted?: BoolFilter<"Member"> | boolean
     roomId?: StringFilter<"Member"> | string
     createdAt?: DateTimeFilter<"Member"> | Date | string
     updatedAt?: DateTimeFilter<"Member"> | Date | string
@@ -4664,6 +4715,9 @@ export namespace Prisma {
   export type MemberOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrder
+    image_url?: SortOrderInput | SortOrder
+    fullName?: SortOrder
+    muted?: SortOrder
     roomId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -4678,6 +4732,9 @@ export namespace Prisma {
     NOT?: MemberScalarWhereWithAggregatesInput | MemberScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Member"> | string
     userId?: StringWithAggregatesFilter<"Member"> | string
+    image_url?: StringNullableWithAggregatesFilter<"Member"> | string | null
+    fullName?: StringWithAggregatesFilter<"Member"> | string
+    muted?: BoolWithAggregatesFilter<"Member"> | boolean
     roomId?: StringWithAggregatesFilter<"Member"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Member"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Member"> | Date | string
@@ -4832,6 +4889,9 @@ export namespace Prisma {
   export type MemberCreateInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Room: RoomCreateNestedOneWithoutMembersInput
@@ -4841,6 +4901,9 @@ export namespace Prisma {
   export type MemberUncheckedCreateInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     roomId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -4850,6 +4913,9 @@ export namespace Prisma {
   export type MemberUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Room?: RoomUpdateOneRequiredWithoutMembersNestedInput
@@ -4859,6 +4925,9 @@ export namespace Prisma {
   export type MemberUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     roomId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4868,6 +4937,9 @@ export namespace Prisma {
   export type MemberCreateManyInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     roomId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -4876,6 +4948,9 @@ export namespace Prisma {
   export type MemberUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4883,6 +4958,9 @@ export namespace Prisma {
   export type MemberUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     roomId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5123,6 +5201,9 @@ export namespace Prisma {
   export type MemberCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    image_url?: SortOrder
+    fullName?: SortOrder
+    muted?: SortOrder
     roomId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -5131,6 +5212,9 @@ export namespace Prisma {
   export type MemberMaxOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    image_url?: SortOrder
+    fullName?: SortOrder
+    muted?: SortOrder
     roomId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -5139,6 +5223,9 @@ export namespace Prisma {
   export type MemberMinOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+    image_url?: SortOrder
+    fullName?: SortOrder
+    muted?: SortOrder
     roomId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -5488,6 +5575,9 @@ export namespace Prisma {
   export type MemberCreateWithoutRoomInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Chats?: ChatCreateNestedManyWithoutMemberInput
@@ -5496,6 +5586,9 @@ export namespace Prisma {
   export type MemberUncheckedCreateWithoutRoomInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Chats?: ChatUncheckedCreateNestedManyWithoutMemberInput
@@ -5561,6 +5654,9 @@ export namespace Prisma {
     NOT?: MemberScalarWhereInput | MemberScalarWhereInput[]
     id?: StringFilter<"Member"> | string
     userId?: StringFilter<"Member"> | string
+    image_url?: StringNullableFilter<"Member"> | string | null
+    fullName?: StringFilter<"Member"> | string
+    muted?: BoolFilter<"Member"> | boolean
     roomId?: StringFilter<"Member"> | string
     createdAt?: DateTimeFilter<"Member"> | Date | string
     updatedAt?: DateTimeFilter<"Member"> | Date | string
@@ -5729,6 +5825,9 @@ export namespace Prisma {
   export type MemberCreateWithoutChatsInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Room: RoomCreateNestedOneWithoutMembersInput
@@ -5737,6 +5836,9 @@ export namespace Prisma {
   export type MemberUncheckedCreateWithoutChatsInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     roomId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5794,6 +5896,9 @@ export namespace Prisma {
   export type MemberUpdateWithoutChatsInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Room?: RoomUpdateOneRequiredWithoutMembersNestedInput
@@ -5802,6 +5907,9 @@ export namespace Prisma {
   export type MemberUncheckedUpdateWithoutChatsInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     roomId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5810,6 +5918,9 @@ export namespace Prisma {
   export type MemberCreateManyRoomInput = {
     id?: string
     userId: string
+    image_url?: string | null
+    fullName?: string
+    muted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -5826,6 +5937,9 @@ export namespace Prisma {
   export type MemberUpdateWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Chats?: ChatUpdateManyWithoutMemberNestedInput
@@ -5834,6 +5948,9 @@ export namespace Prisma {
   export type MemberUncheckedUpdateWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Chats?: ChatUncheckedUpdateManyWithoutMemberNestedInput
@@ -5842,6 +5959,9 @@ export namespace Prisma {
   export type MemberUncheckedUpdateManyWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    image_url?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: StringFieldUpdateOperationsInput | string
+    muted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

@@ -28,10 +28,19 @@ class RoomManager {
             },
         });
         for (const [, memberWs] of this.members) {
-            if (memberWs == this.members.get(user.id))
+            if (memberWs == ws)
                 continue;
             memberWs.send(payload);
         }
+        const members = __1.prisma.member.findMany({
+            where: {
+                roomId: this.roomId,
+            }
+        });
+        ws.send(JSON.stringify({
+            type: types_1.MEMBERS_UPDATE,
+            data: members,
+        }));
     }
     removeMember(user) {
         const payload = JSON.stringify({
@@ -106,8 +115,32 @@ class RoomManager {
             });
             console.log("It's done now");
             for (const [, memberWs] of this.members) {
-                if (memberWs == this.members.get(sender.id))
-                    continue;
+                memberWs.send(payload);
+            }
+        });
+    }
+    deleteMessage(chatId, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const chat = yield __1.prisma.chat.findUnique({
+                where: { id: chatId },
+            });
+            if (userId !== (chat === null || chat === void 0 ? void 0 : chat.MemberId) || userId !== this.adminId)
+                return;
+            const deletedChat = yield __1.prisma.chat.update({
+                where: { id: chatId },
+                data: {
+                    isDeleted: true,
+                }
+            });
+            if (!deletedChat)
+                return;
+            const payload = JSON.stringify({
+                type: types_1.DELETE_MESSAGE,
+                data: {
+                    messageId: chatId
+                },
+            });
+            for (const [, memberWs] of this.members) {
                 memberWs.send(payload);
             }
         });

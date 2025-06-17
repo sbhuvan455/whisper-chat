@@ -133,6 +133,9 @@ exports.Prisma.RoomScalarFieldEnum = {
 exports.Prisma.MemberScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  image_url: 'image_url',
+  fullName: 'fullName',
+  muted: 'muted',
   roomId: 'roomId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

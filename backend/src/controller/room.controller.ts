@@ -65,13 +65,16 @@ export const createRoom = async (req: any, res: any) => {
     }
 }
 
-export const createNewMember = async (userId: string, roomId: string) => {
+export const createNewMember = async (user: any, roomId: string) => {
     
     try {
-        if(!userId) throw new Error("User Id Not Found")
-        // const { id, adminId } = data;
+        const userId = user?.id;
+        const image_url = user?.imageUrl || null;
+        const fullName = user?.fullName
 
-        // if(!id || !adminId) throw new Error("Room Id or Admin Id Not Found");
+        if(!userId || !fullName) throw new Error("User Id or Full Name Not Found")
+
+        if(!userId) throw new Error("User Id Not Found")
 
         const room = await prisma.room.findUnique({
             where: {
@@ -94,7 +97,9 @@ export const createNewMember = async (userId: string, roomId: string) => {
                 const newMember = await prisma.member.create({
                     data: {
                         roomId,
-                        userId
+                        userId,
+                        image_url,
+                        fullName,
                     }
                 })
 
@@ -112,11 +117,16 @@ export const createNewMember = async (userId: string, roomId: string) => {
     
 }
 
-export const acceptUser = async (userId: string, roomId: string) => {
+export const acceptUser = async (user: any, roomId: string) => {
     try {
-        // const { userId } = JSON.parse(user.toString()).id;
+        const userId = user?.id;
+        const fullName = user?.fullName;
 
-        if(!userId) throw new Error("User Id Not Found")
+        console.log("in accept user", user);
+
+        const image_url = user?.imageUrl || null;
+
+        if(!userId || !fullName) throw new Error("User Id or fullname Not Found")
 
         const room = await prisma.room.findUnique({
             where: {
@@ -138,7 +148,9 @@ export const acceptUser = async (userId: string, roomId: string) => {
         const newMember = await prisma.member.create({
             data: {
                 roomId,
-                userId
+                userId,
+                image_url,
+                fullName,
             }
         })
 

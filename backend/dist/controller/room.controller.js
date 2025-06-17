@@ -69,12 +69,15 @@ const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.createRoom = createRoom;
-const createNewMember = (userId, roomId) => __awaiter(void 0, void 0, void 0, function* () {
+const createNewMember = (user, roomId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userId = user === null || user === void 0 ? void 0 : user.id;
+        const image_url = (user === null || user === void 0 ? void 0 : user.imageUrl) || null;
+        const fullName = user === null || user === void 0 ? void 0 : user.fullName;
+        if (!userId || !fullName)
+            throw new Error("User Id or Full Name Not Found");
         if (!userId)
             throw new Error("User Id Not Found");
-        // const { id, adminId } = data;
-        // if(!id || !adminId) throw new Error("Room Id or Admin Id Not Found");
         const room = yield __1.prisma.room.findUnique({
             where: {
                 id: roomId
@@ -93,7 +96,9 @@ const createNewMember = (userId, roomId) => __awaiter(void 0, void 0, void 0, fu
                 const newMember = yield __1.prisma.member.create({
                     data: {
                         roomId,
-                        userId
+                        userId,
+                        image_url,
+                        fullName,
                     }
                 });
                 if (!newMember)
@@ -109,11 +114,14 @@ const createNewMember = (userId, roomId) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.createNewMember = createNewMember;
-const acceptUser = (userId, roomId) => __awaiter(void 0, void 0, void 0, function* () {
+const acceptUser = (user, roomId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // const { userId } = JSON.parse(user.toString()).id;
-        if (!userId)
-            throw new Error("User Id Not Found");
+        const userId = user === null || user === void 0 ? void 0 : user.id;
+        const fullName = user === null || user === void 0 ? void 0 : user.fullName;
+        console.log("in accept user", user);
+        const image_url = (user === null || user === void 0 ? void 0 : user.imageUrl) || null;
+        if (!userId || !fullName)
+            throw new Error("User Id or fullname Not Found");
         const room = yield __1.prisma.room.findUnique({
             where: {
                 id: roomId
@@ -132,7 +140,9 @@ const acceptUser = (userId, roomId) => __awaiter(void 0, void 0, void 0, functio
         const newMember = yield __1.prisma.member.create({
             data: {
                 roomId,
-                userId
+                userId,
+                image_url,
+                fullName,
             }
         });
         if (!newMember)

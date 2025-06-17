@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 import { prisma } from '..';
 import { Chat } from '../../generated/prisma';
-import { MEMBERS_UPDATE, NEW_MESSAGE, REMOVED } from '../types';
+import { DELETE_MESSAGE, MEMBERS_UPDATE, NEW_MESSAGE, REMOVED } from '../types';
 
 export class RoomManager {
     private roomId: string;
@@ -27,9 +27,20 @@ export class RoomManager {
         });
 
         for (const [, memberWs] of this.members) {
-            if(memberWs == this.members.get(user.id)) continue;
+            if(memberWs == ws) continue;
             memberWs.send(payload);
         }
+
+        const members = prisma.member.findMany({
+            where: {
+                roomId: this.roomId,
+            }
+        })
+
+        ws.send(JSON.stringify({
+            type: MEMBERS_UPDATE,
+            data: members,
+        }))
     }
 
     removeMember(user: any) {
@@ -116,6 +127,35 @@ export class RoomManager {
         console.log("It's done now");
 
         for (const [, memberWs] of this.members) {
+            memberWs.send(payload);
+        }
+    }
+
+    async deleteMessage(chatId: string, userId: string) {
+
+        const chat = await prisma.chat.findUnique({
+            where: { id: chatId },
+        })
+
+        if(userId !== chat?.MemberId || userId !== this.adminId) return;
+
+        const deletedChat = await prisma.chat.update({
+            where: { id: chatId },
+            data: {
+                isDeleted: true,
+            }
+        })
+
+        if (!deletedChat) return;
+
+        const payload = JSON.stringify({
+            type: DELETE_MESSAGE,
+            data: {
+                messageId: chatId
+            },
+        });
+
+        for(const [, memberWs] of this.members) {
             memberWs.send(payload);
         }
     }

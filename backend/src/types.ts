@@ -21,3 +21,4 @@ export const NEW_MESSAGE = 'new-message';
 export const MEMBERS_UPDATE = 'members-update';
 export const REMOVE_USER = 'remove-user';
 export const REMOVED = 'removed';
+export const DELETE_MESSAGE = 'delete-message';

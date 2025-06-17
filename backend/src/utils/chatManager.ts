@@ -34,10 +34,10 @@ export class ChatManager {
     public async joinRoom(ws: WebSocket, roomId: string, user: any){
         const userId = user?.id;
 
-        console.log('User trying to join room:', userId, roomId);
+        console.log('User trying to join room:', user, roomId);
 
         if(this.rooms.has(roomId)){
-            await createNewMember(userId, roomId)
+            await createNewMember(user, roomId)
                 .then((res) => {
                     console.log('Response from createNewMember:', res);
                     if(res.success){
@@ -107,7 +107,7 @@ export class ChatManager {
             return;
         }
 
-        await acceptUser(userId, roomId)
+        await acceptUser(user, roomId)
                 .then((response) => {
                     if(response.success){
                         // Add the user to the room
@@ -186,6 +186,17 @@ export class ChatManager {
 
         roomManager.handleMessage(user, message);
         console.log("Ho gya join");
+    }
+
+    public deleteMessage(roomId: string, chatId: string, userId: string) {
+        const roomManager = this.roomObj.get(roomId);
+
+        if(!roomManager) {
+            console.log("Room not found for deleting message");
+            return;
+        }
+
+        roomManager.deleteMessage(chatId, userId);
     }
 
     public endRoom(roomId: string, requesterId: string) {

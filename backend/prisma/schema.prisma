@@ -29,6 +29,9 @@ model Room {
 model Member {
   id        String   @id @default(uuid())
   userId    String
+  image_url String?
+  fullName  String   @default("")
+  muted     Boolean  @default(false)
   roomId    String
   Room      Room     @relation(fields: [roomId], references: [id])
   Chats     Chat[]

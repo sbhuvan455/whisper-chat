@@ -59,9 +59,8 @@ interface ChatMessage {
 interface Member {
   id: string
   fullName: string
-  avatar: string
+  image_url: string
   muted?: boolean
-  isOnline?: boolean
 }
 
 export default function RoomPage() {
@@ -105,7 +104,13 @@ export default function RoomPage() {
           console.log("Pending users:", data)
           break
         case DELETE_MESSAGE:
-          setMessages((prev) => prev.filter((msg) => msg.id !== data.messageId))
+          setMessages((prev) => prev.map((msg) => {
+            if (msg.id === data.messageId) {
+              return { ...msg, isDeleted: true }
+            }else {
+              return msg;
+            }
+          }))
           break
         case REMOVED:
           alert(`${data.user.fullName} has been removed from the room.`)
@@ -210,7 +215,7 @@ export default function RoomPage() {
       }),
     )
 
-    setPending((prevPending) => prevPending.filter((p) => p.user.id === pendingUser.user.id))
+    setPending((prevPending) => prevPending.filter((p) => p.user.id !== pendingUser.user.id))
   }
 
   const rejectUser = (pendingUser: any) => {
@@ -221,7 +226,7 @@ export default function RoomPage() {
       }),
     )
 
-    setPending((prevPending) => prevPending.filter((p) => p.user.id === pendingUser.user.id))
+    setPending((prevPending) => prevPending.filter((p) => p.user.id !== pendingUser.user.id))
   }
 
   const formatFileSize = (bytes: number) => {
@@ -337,17 +342,17 @@ export default function RoomPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
-                                <AvatarImage src={member.avatar || "/placeholder.svg"} />
+                                <AvatarImage src={member.image_url || "/placeholder.svg"} />
                                 <AvatarFallback>{member?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
                               </Avatar>
                               <div>
                                 <p className="font-medium text-sm">{member?.fullName}</p>
                                 <div className="flex items-center gap-2">
                                   <div
-                                    className={`h-2 w-2 rounded-full ${member?.isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                                    className={`h-2 w-2 rounded-full bg-green-500`}
                                   />
                                   <span className="text-xs text-muted-foreground">
-                                    {member.isOnline ? "Online" : "Offline"}
+                                    Online
                                   </span>
                                   {member.muted && (
                                     <Badge variant="secondary" className="text-xs">
@@ -439,15 +444,15 @@ export default function RoomPage() {
                   {members.map((member) => (
                     <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar || "/placeholder.svg"} />
+                        <AvatarImage src={member.image_url || "/placeholder.svg"} />
                         <AvatarFallback>{member?.fullName.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium text-sm">{member?.fullName}</p>
                         <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${member?.isOnline ? "bg-green-500" : "bg-gray-400"}`} />
+                          <div className={`h-2 w-2 rounded-full bg-green-500`} />
                           <span className="text-xs text-muted-foreground">
-                            {member?.isOnline ? "Online" : "Offline"}
+                            Online
                           </span>
                         </div>
                       </div>

@@ -8,7 +8,7 @@ import { PrismaClient } from '../generated/prisma'
 
 import roomRouter from "./routes/room.routes"
 import { ChatManager } from './utils/chatManager';
-import { ACCEPT_USER, CREATE_ROOM, JOIN_ROOM, NEW_MESSAGE, REMOVE_USER } from './types';
+import { ACCEPT_USER, CREATE_ROOM, DELETE_MESSAGE, JOIN_ROOM, NEW_MESSAGE, REMOVE_USER } from './types';
 import { initializeActiveRooms } from './controller/room.controller';
 
 export const app = express();
@@ -61,6 +61,10 @@ wss.on('connection', (ws) => {
 
     if(type === REMOVE_USER) {
       chatManager.removeUser(data.roomId, data.user, data.adminId);
+    }
+
+    if(type === DELETE_MESSAGE) {
+      chatManager.deleteMessage(data.roomId, data.messageId, data.userId);
     }
   })
 });
