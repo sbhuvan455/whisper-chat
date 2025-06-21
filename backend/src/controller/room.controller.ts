@@ -32,39 +32,6 @@ export const initializeActiveRooms = async (chatManager: ChatManager) => {
   }
 };
 
-export const createRoom = async (req: any, res: any) => {
-    console.log('Creating room with data:', req.body);
-    const { title, description } = req.body;
-
-    if (!title || !description) {
-        return res.status(400).json({ error: 'title and description are required' });
-    }
-
-    const { user } = req.body;
-
-    if (!user) return res.status(401).json({ error: 'Unauthorized' })
-
-    try {
-        const room = await prisma.room.create({
-            data: {
-                title,
-                description,
-                adminId: user.id,
-            },
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: 'Room created successfully',
-            data: room,
-
-        });
-    } catch (error) {
-        // console.error('Error creating room:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-}
-
 export const createNewMember = async (user: any, roomId: string) => {
     
     try {
@@ -104,6 +71,15 @@ export const createNewMember = async (user: any, roomId: string) => {
                 })
 
                 if(!newMember) throw new Error("Error creating member")
+            }else {
+                await prisma.member.update({
+                    where: {
+                        id: Member.id
+                    },
+                    data: {
+                        online: true,
+                    }
+                })
             }
 
             return { success: true, isAdmin: true, message: "the User is the admin of the room" };
@@ -143,7 +119,17 @@ export const acceptUser = async (user: any, roomId: string) => {
             }
         })
 
-        if(Member) return { success: true, message: "User already a member of the room", data: Member };
+        if(Member) {
+            await prisma.member.update({
+                where: {
+                    id: Member.id
+                },
+                data: {
+                    online: true,
+                }
+            })
+            return { success: true, message: "User already a member of the room", data: Member };
+        }
 
         const newMember = await prisma.member.create({
             data: {

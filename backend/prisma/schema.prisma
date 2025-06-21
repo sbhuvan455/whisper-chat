@@ -33,6 +33,7 @@ model Member {
   fullName  String   @default("")
   muted     Boolean  @default(false)
   roomId    String
+  online    Boolean  @default(true)
   Room      Room     @relation(fields: [roomId], references: [id])
   Chats     Chat[]
   createdAt DateTime @default(now())

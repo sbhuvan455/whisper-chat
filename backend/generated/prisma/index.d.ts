@@ -2262,6 +2262,7 @@ export namespace Prisma {
     fullName: string | null
     muted: boolean | null
     roomId: string | null
+    online: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2273,6 +2274,7 @@ export namespace Prisma {
     fullName: string | null
     muted: boolean | null
     roomId: string | null
+    online: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2284,6 +2286,7 @@ export namespace Prisma {
     fullName: number
     muted: number
     roomId: number
+    online: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -2297,6 +2300,7 @@ export namespace Prisma {
     fullName?: true
     muted?: true
     roomId?: true
+    online?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2308,6 +2312,7 @@ export namespace Prisma {
     fullName?: true
     muted?: true
     roomId?: true
+    online?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2319,6 +2324,7 @@ export namespace Prisma {
     fullName?: true
     muted?: true
     roomId?: true
+    online?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -2403,6 +2409,7 @@ export namespace Prisma {
     fullName: string
     muted: boolean
     roomId: string
+    online: boolean
     createdAt: Date
     updatedAt: Date
     _count: MemberCountAggregateOutputType | null
@@ -2431,6 +2438,7 @@ export namespace Prisma {
     fullName?: boolean
     muted?: boolean
     roomId?: boolean
+    online?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     Room?: boolean | RoomDefaultArgs<ExtArgs>
@@ -2445,6 +2453,7 @@ export namespace Prisma {
     fullName?: boolean
     muted?: boolean
     roomId?: boolean
+    online?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     Room?: boolean | RoomDefaultArgs<ExtArgs>
@@ -2457,6 +2466,7 @@ export namespace Prisma {
     fullName?: boolean
     muted?: boolean
     roomId?: boolean
+    online?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     Room?: boolean | RoomDefaultArgs<ExtArgs>
@@ -2469,11 +2479,12 @@ export namespace Prisma {
     fullName?: boolean
     muted?: boolean
     roomId?: boolean
+    online?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type MemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "image_url" | "fullName" | "muted" | "roomId" | "createdAt" | "updatedAt", ExtArgs["result"]["member"]>
+  export type MemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "image_url" | "fullName" | "muted" | "roomId" | "online" | "createdAt" | "updatedAt", ExtArgs["result"]["member"]>
   export type MemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Room?: boolean | RoomDefaultArgs<ExtArgs>
     Chats?: boolean | Member$ChatsArgs<ExtArgs>
@@ -2499,6 +2510,7 @@ export namespace Prisma {
       fullName: string
       muted: boolean
       roomId: string
+      online: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["member"]>
@@ -2932,6 +2944,7 @@ export namespace Prisma {
     readonly fullName: FieldRef<"Member", 'String'>
     readonly muted: FieldRef<"Member", 'Boolean'>
     readonly roomId: FieldRef<"Member", 'String'>
+    readonly online: FieldRef<"Member", 'Boolean'>
     readonly createdAt: FieldRef<"Member", 'DateTime'>
     readonly updatedAt: FieldRef<"Member", 'DateTime'>
   }
@@ -4498,6 +4511,7 @@ export namespace Prisma {
     fullName: 'fullName',
     muted: 'muted',
     roomId: 'roomId',
+    online: 'online',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -4677,6 +4691,7 @@ export namespace Prisma {
     fullName?: StringFilter<"Member"> | string
     muted?: BoolFilter<"Member"> | boolean
     roomId?: StringFilter<"Member"> | string
+    online?: BoolFilter<"Member"> | boolean
     createdAt?: DateTimeFilter<"Member"> | Date | string
     updatedAt?: DateTimeFilter<"Member"> | Date | string
     Room?: XOR<RoomScalarRelationFilter, RoomWhereInput>
@@ -4690,6 +4705,7 @@ export namespace Prisma {
     fullName?: SortOrder
     muted?: SortOrder
     roomId?: SortOrder
+    online?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     Room?: RoomOrderByWithRelationInput
@@ -4706,6 +4722,7 @@ export namespace Prisma {
     fullName?: StringFilter<"Member"> | string
     muted?: BoolFilter<"Member"> | boolean
     roomId?: StringFilter<"Member"> | string
+    online?: BoolFilter<"Member"> | boolean
     createdAt?: DateTimeFilter<"Member"> | Date | string
     updatedAt?: DateTimeFilter<"Member"> | Date | string
     Room?: XOR<RoomScalarRelationFilter, RoomWhereInput>
@@ -4719,6 +4736,7 @@ export namespace Prisma {
     fullName?: SortOrder
     muted?: SortOrder
     roomId?: SortOrder
+    online?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MemberCountOrderByAggregateInput
@@ -4736,6 +4754,7 @@ export namespace Prisma {
     fullName?: StringWithAggregatesFilter<"Member"> | string
     muted?: BoolWithAggregatesFilter<"Member"> | boolean
     roomId?: StringWithAggregatesFilter<"Member"> | string
+    online?: BoolWithAggregatesFilter<"Member"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Member"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Member"> | Date | string
   }
@@ -4892,6 +4911,7 @@ export namespace Prisma {
     image_url?: string | null
     fullName?: string
     muted?: boolean
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Room: RoomCreateNestedOneWithoutMembersInput
@@ -4905,6 +4925,7 @@ export namespace Prisma {
     fullName?: string
     muted?: boolean
     roomId: string
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Chats?: ChatUncheckedCreateNestedManyWithoutMemberInput
@@ -4916,6 +4937,7 @@ export namespace Prisma {
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Room?: RoomUpdateOneRequiredWithoutMembersNestedInput
@@ -4929,6 +4951,7 @@ export namespace Prisma {
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
     roomId?: StringFieldUpdateOperationsInput | string
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Chats?: ChatUncheckedUpdateManyWithoutMemberNestedInput
@@ -4941,6 +4964,7 @@ export namespace Prisma {
     fullName?: string
     muted?: boolean
     roomId: string
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4951,6 +4975,7 @@ export namespace Prisma {
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4962,6 +4987,7 @@ export namespace Prisma {
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
     roomId?: StringFieldUpdateOperationsInput | string
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -5205,6 +5231,7 @@ export namespace Prisma {
     fullName?: SortOrder
     muted?: SortOrder
     roomId?: SortOrder
+    online?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -5216,6 +5243,7 @@ export namespace Prisma {
     fullName?: SortOrder
     muted?: SortOrder
     roomId?: SortOrder
+    online?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -5227,6 +5255,7 @@ export namespace Prisma {
     fullName?: SortOrder
     muted?: SortOrder
     roomId?: SortOrder
+    online?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -5578,6 +5607,7 @@ export namespace Prisma {
     image_url?: string | null
     fullName?: string
     muted?: boolean
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Chats?: ChatCreateNestedManyWithoutMemberInput
@@ -5589,6 +5619,7 @@ export namespace Prisma {
     image_url?: string | null
     fullName?: string
     muted?: boolean
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Chats?: ChatUncheckedCreateNestedManyWithoutMemberInput
@@ -5658,6 +5689,7 @@ export namespace Prisma {
     fullName?: StringFilter<"Member"> | string
     muted?: BoolFilter<"Member"> | boolean
     roomId?: StringFilter<"Member"> | string
+    online?: BoolFilter<"Member"> | boolean
     createdAt?: DateTimeFilter<"Member"> | Date | string
     updatedAt?: DateTimeFilter<"Member"> | Date | string
   }
@@ -5828,6 +5860,7 @@ export namespace Prisma {
     image_url?: string | null
     fullName?: string
     muted?: boolean
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     Room: RoomCreateNestedOneWithoutMembersInput
@@ -5840,6 +5873,7 @@ export namespace Prisma {
     fullName?: string
     muted?: boolean
     roomId: string
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -5899,6 +5933,7 @@ export namespace Prisma {
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Room?: RoomUpdateOneRequiredWithoutMembersNestedInput
@@ -5911,6 +5946,7 @@ export namespace Prisma {
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
     roomId?: StringFieldUpdateOperationsInput | string
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -5921,6 +5957,7 @@ export namespace Prisma {
     image_url?: string | null
     fullName?: string
     muted?: boolean
+    online?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -5940,6 +5977,7 @@ export namespace Prisma {
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Chats?: ChatUpdateManyWithoutMemberNestedInput
@@ -5951,6 +5989,7 @@ export namespace Prisma {
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Chats?: ChatUncheckedUpdateManyWithoutMemberNestedInput
@@ -5962,6 +6001,7 @@ export namespace Prisma {
     image_url?: NullableStringFieldUpdateOperationsInput | string | null
     fullName?: StringFieldUpdateOperationsInput | string
     muted?: BoolFieldUpdateOperationsInput | boolean
+    online?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

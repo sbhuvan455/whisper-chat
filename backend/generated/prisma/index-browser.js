@@ -137,6 +137,7 @@ exports.Prisma.MemberScalarFieldEnum = {
   fullName: 'fullName',
   muted: 'muted',
   roomId: 'roomId',
+  online: 'online',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

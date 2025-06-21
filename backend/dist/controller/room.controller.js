@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.acceptUser = exports.createNewMember = exports.createRoom = exports.initializeActiveRooms = void 0;
+exports.acceptUser = exports.createNewMember = exports.initializeActiveRooms = void 0;
 // import { clerkClient, getAuth, User } from '@clerk/express'
 const __1 = require("..");
 const initializeActiveRooms = (chatManager) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,35 +40,6 @@ const initializeActiveRooms = (chatManager) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.initializeActiveRooms = initializeActiveRooms;
-const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('Creating room with data:', req.body);
-    const { title, description } = req.body;
-    if (!title || !description) {
-        return res.status(400).json({ error: 'title and description are required' });
-    }
-    const { user } = req.body;
-    if (!user)
-        return res.status(401).json({ error: 'Unauthorized' });
-    try {
-        const room = yield __1.prisma.room.create({
-            data: {
-                title,
-                description,
-                adminId: user.id,
-            },
-        });
-        return res.status(201).json({
-            success: true,
-            message: 'Room created successfully',
-            data: room,
-        });
-    }
-    catch (error) {
-        // console.error('Error creating room:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
-exports.createRoom = createRoom;
 const createNewMember = (user, roomId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = user === null || user === void 0 ? void 0 : user.id;
@@ -104,6 +75,16 @@ const createNewMember = (user, roomId) => __awaiter(void 0, void 0, void 0, func
                 if (!newMember)
                     throw new Error("Error creating member");
             }
+            else {
+                yield __1.prisma.member.update({
+                    where: {
+                        id: Member.id
+                    },
+                    data: {
+                        online: true,
+                    }
+                });
+            }
             return { success: true, isAdmin: true, message: "the User is the admin of the room" };
         }
         return { success: true, isAdmin: false, message: "the User is not the admin of the room" };
@@ -135,8 +116,17 @@ const acceptUser = (user, roomId) => __awaiter(void 0, void 0, void 0, function*
                 userId
             }
         });
-        if (Member)
+        if (Member) {
+            yield __1.prisma.member.update({
+                where: {
+                    id: Member.id
+                },
+                data: {
+                    online: true,
+                }
+            });
             return { success: true, message: "User already a member of the room", data: Member };
+        }
         const newMember = yield __1.prisma.member.create({
             data: {
                 roomId,

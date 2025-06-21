@@ -1,8 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// @ts-nocheck
 const express_1 = require("express");
 // import { requireAuth } from "@clerk/express";
-const room_controller_1 = require("../controller/room.controller");
+const api_controller_1 = require("../controller/api.controller");
 const router = (0, express_1.Router)();
-router.post("/create-room", room_controller_1.createRoom);
+router.post("/create-room", api_controller_1.createRoom);
+router.post("/get-admin", api_controller_1.getAdminId);
+router.post("/get-members", api_controller_1.getAllMembers);
 exports.default = router;

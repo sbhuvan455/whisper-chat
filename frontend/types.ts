@@ -12,3 +12,4 @@ export const REJECT_USER = 'reject-user';
 export const NEW_MESSAGE = 'new-message';
 export const PERMISSION = 'permission';
 export const MEMBERS_UPDATE = 'members-update';
+export const LEAVE = 'leave';

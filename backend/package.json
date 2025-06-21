@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "prisma generate && tsc -b && node dist/index.js"
+    "start": "prisma generate && tsc -b && node dist/index.js",
+    "dev": "prisma generate && nodemon --watch src --ext ts --exec \"tsc && node dist/index.js\""
   },
   "keywords": [],
   "author": "",

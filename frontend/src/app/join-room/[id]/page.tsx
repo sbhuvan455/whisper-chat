@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { redirect, useParams } from "next/navigation"
 import { useUser } from "@clerk/clerk-react"
 import { useSocket } from "@/context/socketProvider"
@@ -41,6 +41,7 @@ import {
   PERMISSION,
   MEMBERS_UPDATE,
   REMOVED,
+  LEAVE,
 } from "../../../../types"
 import { User } from "@clerk/nextjs/server"
 
@@ -49,6 +50,7 @@ interface ChatMessage {
   userId: string
   user: User
   message: string
+  isDeleted: boolean
   createdAt: string
   type?: "text" | "image" | "file"
   fileUrl?: string
@@ -72,10 +74,10 @@ export default function RoomPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [pending, setPending] = useState<any[]>([])
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [isAdmin, setIsAdmin] = useState<Boolean>(false);
+  const [adminId, setAdminId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const isAdmin = true // Replace with logic to check if current user is admin
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -84,6 +86,59 @@ export default function RoomPage() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  const fetchAdmin = useCallback(async () => {
+        try {
+          const response = await fetch(`/api/v1/room/get-admin`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ roomId: roomId }),
+          })
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch admin status")
+          }
+
+          const result = await response.json()
+          console.log(result);
+
+          setIsAdmin(result.adminId === user?.id)
+
+          setAdminId(result.adminId)
+
+        } catch (error) {
+          console.error("Error fetching admin status:", error)
+        }
+    }, [user, roomId])
+
+    const fetchMember = useCallback(async () => {
+        try {
+          const response = await fetch(`/api/v1/room/get-members`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ roomId: roomId }),
+          })
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch admin status")
+          }
+
+          const result = await response.json()
+
+          console.log("Fetched members:", result.members);
+
+          if(result.members.length > 0) {
+            setMembers(result.members)
+          }
+
+        } catch (error) {
+          console.error("Error fetching admin status:", error)
+        }
+    }, [user, roomId])
 
   useEffect(() => {
     if (!socket || !user || !roomId) return
@@ -97,7 +152,8 @@ export default function RoomPage() {
           setMessages((prev) => [...prev, data])
           break
         case MEMBERS_UPDATE:
-          setMembers((prevMember) => [...prevMember, data.user])
+          // console.log("Members updated:", data)
+          setMembers((prevMember) => [...prevMember, data])
           break
         case PERMISSION:
           setPending((prevPending) => [...prevPending, data])
@@ -118,13 +174,17 @@ export default function RoomPage() {
           if (data.user.id === user?.id) {
             redirect("/join-room")
           }
+
           setMembers((prev) => prev.filter((member) => member.id !== data.user.id))
       }
     }
 
     socket.addEventListener("message", handleMessage)
+    if(user) fetchAdmin()
+    if(roomId) fetchMember()
 
     return () => socket.removeEventListener("message", handleMessage)
+
   }, [socket, user, roomId])
 
   const sendMessage = () => {
@@ -242,7 +302,9 @@ export default function RoomPage() {
   }
 
   const renderMessage = (msg: ChatMessage) => {
-    const isOwnMessage = msg.userId === user?.id
+    const isOwnMessage = msg.user.id === user?.id
+
+    console.log("Rendering message:", msg, isOwnMessage);
 
     return (
       <div
@@ -252,12 +314,12 @@ export default function RoomPage() {
       >
         <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarImage src={msg.user.imageUrl} />
-          <AvatarFallback className="text-xs">{msg.user.username?.charAt(0).toUpperCase()}</AvatarFallback>
+          <AvatarFallback className="text-xs">{msg.user.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-sm">{msg.user?.username || 'U'}</span>
+            <span className="font-semibold text-sm">{msg.user?.fullName || 'U'}</span>
             <span className="text-xs text-muted-foreground">{formatTime(msg.createdAt)}</span>
             {isOwnMessage && (
               <Badge variant="secondary" className="text-xs">
@@ -266,27 +328,29 @@ export default function RoomPage() {
             )}
           </div>
 
-          {msg.type === "image" && msg.fileUrl ? (
-            <div className="mt-2">
-              <img src={msg.fileUrl || "/placeholder.svg"} alt={msg.fileName} className="max-w-xs rounded-lg border" />
-              <p className="text-sm text-muted-foreground mt-1">{msg.fileName}</p>
-            </div>
-          ) : msg.type === "file" && msg.fileUrl ? (
-            <div className="mt-2 p-3 border rounded-lg bg-muted/30 max-w-xs">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{msg.fileName}</p>
-                  <p className="text-xs text-muted-foreground">{msg.fileSize && formatFileSize(msg.fileSize)}</p>
-                </div>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                  <Download className="h-3 w-3" />
-                </Button>
+          {!msg.isDeleted ? (
+            msg.type === "image" && msg.fileUrl ? (
+              <div className="mt-2">
+                <img src={msg.fileUrl || "/placeholder.svg"} alt={msg.fileName} className="max-w-xs rounded-lg border" />
+                <p className="text-sm text-muted-foreground mt-1">{msg.fileName}</p>
               </div>
-            </div>
-          ) : (
-            <p className="text-sm leading-relaxed break-words">{msg.message}</p>
-          )}
+            ) : msg.type === "file" && msg.fileUrl ? (
+              <div className="mt-2 p-3 border rounded-lg bg-muted/30 max-w-xs">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{msg.fileName}</p>
+                    <p className="text-xs text-muted-foreground">{msg.fileSize && formatFileSize(msg.fileSize)}</p>
+                  </div>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed break-words">{msg.message}</p>
+            )
+          ) : <p className="text-sm leading-relaxed break-words">This Message is Deleted</p>}
         </div>
 
         {(isAdmin || isOwnMessage) && (
@@ -327,10 +391,12 @@ export default function RoomPage() {
                   <Users className="h-4 w-4" />
                   Members ({members.length})
                 </TabsTrigger>
-                <TabsTrigger value="pending" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Pending ({pending.length})
-                </TabsTrigger>
+                {(isAdmin) && 
+                  (<TabsTrigger value="pending" className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Pending ({pending.length})
+                  </TabsTrigger>)
+                }
               </TabsList>
 
               <TabsContent value="members" className="mt-4">
@@ -363,23 +429,25 @@ export default function RoomPage() {
                               </div>
                             </div>
 
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => muteUser(member.id)}>
-                                  <VolumeX className="h-4 w-4 mr-2" />
-                                  {member.muted ? "Unmute" : "Mute"}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => removeUser(member)} className="text-destructive">
-                                  <UserMinus className="h-4 w-4 mr-2" />
-                                  Remove
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {isAdmin &&
+                              (<DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => muteUser(member.id)}>
+                                    <VolumeX className="h-4 w-4 mr-2" />
+                                    {member.muted ? "Unmute" : "Mute"}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => removeUser(member)} className="text-destructive">
+                                    <UserMinus className="h-4 w-4 mr-2" />
+                                    Remove
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>)
+                            }
                           </div>
                         </CardContent>
                       </Card>
@@ -572,3 +640,4 @@ export default function RoomPage() {
     </div>
   )
 }
+

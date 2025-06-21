@@ -177,6 +177,15 @@ class ChatManager {
             console.log("Ho gya join");
         });
     }
+    leaveRoom(ws, roomId, user) {
+        const roomManager = this.roomObj.get(roomId);
+        if (!roomManager) {
+            ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
+            return;
+        }
+        roomManager.removeMember(user);
+        ws.send(JSON.stringify({ type: types_1.REMOVED, data: { message: "You have left the room", roomId } }));
+    }
     deleteMessage(roomId, chatId, userId) {
         const roomManager = this.roomObj.get(roomId);
         if (!roomManager) {

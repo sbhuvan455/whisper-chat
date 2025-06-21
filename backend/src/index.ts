@@ -66,6 +66,10 @@ wss.on('connection', (ws) => {
     if(type === DELETE_MESSAGE) {
       chatManager.deleteMessage(data.roomId, data.messageId, data.userId);
     }
+
+    if(type === 'leave') {
+      chatManager.leaveRoom(ws, data.roomId, data.user);
+    }
   })
 });
 
