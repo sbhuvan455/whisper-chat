@@ -130,6 +130,54 @@ class RoomManager {
             }
         });
     }
+    handleFile(sender, fileUrl, fileName, fileSize) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (this.isMuted(sender.id))
+                    throw new Error("You are muted and cannot send files");
+                console.log("Handling file in room manager:", fileUrl, fileName, fileSize);
+                const member = yield __1.prisma.member.findFirst({
+                    where: {
+                        userId: sender.id,
+                        roomId: this.roomId,
+                    },
+                });
+                if (!member)
+                    throw new Error("Member not found in this room");
+                const chat = yield __1.prisma.chat.create({
+                    data: {
+                        reference: fileUrl,
+                        fileName: fileName,
+                        fileSize: fileSize,
+                        roomId: this.roomId,
+                        MemberId: member.id,
+                        type: 'file',
+                    },
+                });
+                if (!chat)
+                    throw new Error("Error creating chat message with file");
+                console.log("File chat created:", chat);
+                const payload = JSON.stringify({
+                    type: types_1.NEW_MESSAGE,
+                    data: {
+                        id: chat === null || chat === void 0 ? void 0 : chat.id,
+                        user: sender,
+                        type: 'file',
+                        fileUrl: chat === null || chat === void 0 ? void 0 : chat.reference,
+                        fileName: chat === null || chat === void 0 ? void 0 : chat.fileName,
+                        fileSize: chat === null || chat === void 0 ? void 0 : chat.fileSize,
+                        createdAt: chat === null || chat === void 0 ? void 0 : chat.createdAt,
+                    },
+                });
+                for (const [, memberWs] of this.members) {
+                    memberWs.send(payload);
+                }
+            }
+            catch (error) {
+                console.error("Error handling file:", error);
+            }
+        });
+    }
     deleteMessage(chatId, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

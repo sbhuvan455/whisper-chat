@@ -177,6 +177,16 @@ class ChatManager {
             console.log("Ho gya join");
         });
     }
+    sendFile(ws, user, roomId, fileUrl, fileName, fileSize) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const roomManager = this.roomObj.get(roomId);
+            if (!roomManager) {
+                ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
+                return;
+            }
+            roomManager.handleFile(user, fileUrl, fileName, fileSize);
+        });
+    }
     leaveRoom(ws, roomId, user) {
         const roomManager = this.roomObj.get(roomId);
         if (!roomManager) {

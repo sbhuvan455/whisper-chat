@@ -13,20 +13,6 @@ services:
       POSTGRES_DB: whisperchat
     volumes:
       - whisperchat_data:/var/lib/postgresql/data
-  
-  minio:
-    image: minio/minio
-    container_name: whisperchat_minio
-    command: server/data
-    environment:
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
-    ports:
-      - "9006:9006"  # S3 API
-      - "9001:9001"  # MinIO Console
-    volumes:
-      - minio_data:/data
 
 volumes:
   whisperchat_data:
-  minio_data:

@@ -3391,14 +3391,28 @@ export namespace Prisma {
 
   export type AggregateChat = {
     _count: ChatCountAggregateOutputType | null
+    _avg: ChatAvgAggregateOutputType | null
+    _sum: ChatSumAggregateOutputType | null
     _min: ChatMinAggregateOutputType | null
     _max: ChatMaxAggregateOutputType | null
+  }
+
+  export type ChatAvgAggregateOutputType = {
+    fileSize: number | null
+  }
+
+  export type ChatSumAggregateOutputType = {
+    fileSize: number | null
   }
 
   export type ChatMinAggregateOutputType = {
     id: string | null
     roomId: string | null
     MemberId: string | null
+    reference: string | null
+    fileName: string | null
+    fileSize: number | null
+    type: string | null
     message: string | null
     isDeleted: boolean | null
     createdAt: Date | null
@@ -3409,6 +3423,10 @@ export namespace Prisma {
     id: string | null
     roomId: string | null
     MemberId: string | null
+    reference: string | null
+    fileName: string | null
+    fileSize: number | null
+    type: string | null
     message: string | null
     isDeleted: boolean | null
     createdAt: Date | null
@@ -3419,6 +3437,10 @@ export namespace Prisma {
     id: number
     roomId: number
     MemberId: number
+    reference: number
+    fileName: number
+    fileSize: number
+    type: number
     message: number
     isDeleted: number
     createdAt: number
@@ -3427,10 +3449,22 @@ export namespace Prisma {
   }
 
 
+  export type ChatAvgAggregateInputType = {
+    fileSize?: true
+  }
+
+  export type ChatSumAggregateInputType = {
+    fileSize?: true
+  }
+
   export type ChatMinAggregateInputType = {
     id?: true
     roomId?: true
     MemberId?: true
+    reference?: true
+    fileName?: true
+    fileSize?: true
+    type?: true
     message?: true
     isDeleted?: true
     createdAt?: true
@@ -3441,6 +3475,10 @@ export namespace Prisma {
     id?: true
     roomId?: true
     MemberId?: true
+    reference?: true
+    fileName?: true
+    fileSize?: true
+    type?: true
     message?: true
     isDeleted?: true
     createdAt?: true
@@ -3451,6 +3489,10 @@ export namespace Prisma {
     id?: true
     roomId?: true
     MemberId?: true
+    reference?: true
+    fileName?: true
+    fileSize?: true
+    type?: true
     message?: true
     isDeleted?: true
     createdAt?: true
@@ -3496,6 +3538,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ChatAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ChatSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ChatMinAggregateInputType
@@ -3526,6 +3580,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ChatCountAggregateInputType | true
+    _avg?: ChatAvgAggregateInputType
+    _sum?: ChatSumAggregateInputType
     _min?: ChatMinAggregateInputType
     _max?: ChatMaxAggregateInputType
   }
@@ -3534,11 +3590,17 @@ export namespace Prisma {
     id: string
     roomId: string
     MemberId: string
-    message: string
+    reference: string | null
+    fileName: string | null
+    fileSize: number | null
+    type: string
+    message: string | null
     isDeleted: boolean
     createdAt: Date
     updatedAt: Date
     _count: ChatCountAggregateOutputType | null
+    _avg: ChatAvgAggregateOutputType | null
+    _sum: ChatSumAggregateOutputType | null
     _min: ChatMinAggregateOutputType | null
     _max: ChatMaxAggregateOutputType | null
   }
@@ -3561,6 +3623,10 @@ export namespace Prisma {
     id?: boolean
     roomId?: boolean
     MemberId?: boolean
+    reference?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    type?: boolean
     message?: boolean
     isDeleted?: boolean
     createdAt?: boolean
@@ -3573,6 +3639,10 @@ export namespace Prisma {
     id?: boolean
     roomId?: boolean
     MemberId?: boolean
+    reference?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    type?: boolean
     message?: boolean
     isDeleted?: boolean
     createdAt?: boolean
@@ -3585,6 +3655,10 @@ export namespace Prisma {
     id?: boolean
     roomId?: boolean
     MemberId?: boolean
+    reference?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    type?: boolean
     message?: boolean
     isDeleted?: boolean
     createdAt?: boolean
@@ -3597,13 +3671,17 @@ export namespace Prisma {
     id?: boolean
     roomId?: boolean
     MemberId?: boolean
+    reference?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    type?: boolean
     message?: boolean
     isDeleted?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ChatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "roomId" | "MemberId" | "message" | "isDeleted" | "createdAt" | "updatedAt", ExtArgs["result"]["chat"]>
+  export type ChatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "roomId" | "MemberId" | "reference" | "fileName" | "fileSize" | "type" | "message" | "isDeleted" | "createdAt" | "updatedAt", ExtArgs["result"]["chat"]>
   export type ChatInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Room?: boolean | RoomDefaultArgs<ExtArgs>
     Member?: boolean | MemberDefaultArgs<ExtArgs>
@@ -3627,7 +3705,11 @@ export namespace Prisma {
       id: string
       roomId: string
       MemberId: string
-      message: string
+      reference: string | null
+      fileName: string | null
+      fileSize: number | null
+      type: string
+      message: string | null
       isDeleted: boolean
       createdAt: Date
       updatedAt: Date
@@ -4059,6 +4141,10 @@ export namespace Prisma {
     readonly id: FieldRef<"Chat", 'String'>
     readonly roomId: FieldRef<"Chat", 'String'>
     readonly MemberId: FieldRef<"Chat", 'String'>
+    readonly reference: FieldRef<"Chat", 'String'>
+    readonly fileName: FieldRef<"Chat", 'String'>
+    readonly fileSize: FieldRef<"Chat", 'Int'>
+    readonly type: FieldRef<"Chat", 'String'>
     readonly message: FieldRef<"Chat", 'String'>
     readonly isDeleted: FieldRef<"Chat", 'Boolean'>
     readonly createdAt: FieldRef<"Chat", 'DateTime'>
@@ -4523,6 +4609,10 @@ export namespace Prisma {
     id: 'id',
     roomId: 'roomId',
     MemberId: 'MemberId',
+    reference: 'reference',
+    fileName: 'fileName',
+    fileSize: 'fileSize',
+    type: 'type',
     message: 'message',
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
@@ -4607,6 +4697,20 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
   /**
    * Deep Input Types
@@ -4766,7 +4870,11 @@ export namespace Prisma {
     id?: StringFilter<"Chat"> | string
     roomId?: StringFilter<"Chat"> | string
     MemberId?: StringFilter<"Chat"> | string
-    message?: StringFilter<"Chat"> | string
+    reference?: StringNullableFilter<"Chat"> | string | null
+    fileName?: StringNullableFilter<"Chat"> | string | null
+    fileSize?: IntNullableFilter<"Chat"> | number | null
+    type?: StringFilter<"Chat"> | string
+    message?: StringNullableFilter<"Chat"> | string | null
     isDeleted?: BoolFilter<"Chat"> | boolean
     createdAt?: DateTimeFilter<"Chat"> | Date | string
     updatedAt?: DateTimeFilter<"Chat"> | Date | string
@@ -4778,7 +4886,11 @@ export namespace Prisma {
     id?: SortOrder
     roomId?: SortOrder
     MemberId?: SortOrder
-    message?: SortOrder
+    reference?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    fileSize?: SortOrderInput | SortOrder
+    type?: SortOrder
+    message?: SortOrderInput | SortOrder
     isDeleted?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -4793,7 +4905,11 @@ export namespace Prisma {
     NOT?: ChatWhereInput | ChatWhereInput[]
     roomId?: StringFilter<"Chat"> | string
     MemberId?: StringFilter<"Chat"> | string
-    message?: StringFilter<"Chat"> | string
+    reference?: StringNullableFilter<"Chat"> | string | null
+    fileName?: StringNullableFilter<"Chat"> | string | null
+    fileSize?: IntNullableFilter<"Chat"> | number | null
+    type?: StringFilter<"Chat"> | string
+    message?: StringNullableFilter<"Chat"> | string | null
     isDeleted?: BoolFilter<"Chat"> | boolean
     createdAt?: DateTimeFilter<"Chat"> | Date | string
     updatedAt?: DateTimeFilter<"Chat"> | Date | string
@@ -4805,13 +4921,19 @@ export namespace Prisma {
     id?: SortOrder
     roomId?: SortOrder
     MemberId?: SortOrder
-    message?: SortOrder
+    reference?: SortOrderInput | SortOrder
+    fileName?: SortOrderInput | SortOrder
+    fileSize?: SortOrderInput | SortOrder
+    type?: SortOrder
+    message?: SortOrderInput | SortOrder
     isDeleted?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ChatCountOrderByAggregateInput
+    _avg?: ChatAvgOrderByAggregateInput
     _max?: ChatMaxOrderByAggregateInput
     _min?: ChatMinOrderByAggregateInput
+    _sum?: ChatSumOrderByAggregateInput
   }
 
   export type ChatScalarWhereWithAggregatesInput = {
@@ -4821,7 +4943,11 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Chat"> | string
     roomId?: StringWithAggregatesFilter<"Chat"> | string
     MemberId?: StringWithAggregatesFilter<"Chat"> | string
-    message?: StringWithAggregatesFilter<"Chat"> | string
+    reference?: StringNullableWithAggregatesFilter<"Chat"> | string | null
+    fileName?: StringNullableWithAggregatesFilter<"Chat"> | string | null
+    fileSize?: IntNullableWithAggregatesFilter<"Chat"> | number | null
+    type?: StringWithAggregatesFilter<"Chat"> | string
+    message?: StringNullableWithAggregatesFilter<"Chat"> | string | null
     isDeleted?: BoolWithAggregatesFilter<"Chat"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Chat"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Chat"> | Date | string
@@ -4994,7 +5120,11 @@ export namespace Prisma {
 
   export type ChatCreateInput = {
     id?: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5006,7 +5136,11 @@ export namespace Prisma {
     id?: string
     roomId: string
     MemberId: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5014,7 +5148,11 @@ export namespace Prisma {
 
   export type ChatUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5026,7 +5164,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     roomId?: StringFieldUpdateOperationsInput | string
     MemberId?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5036,7 +5178,11 @@ export namespace Prisma {
     id?: string
     roomId: string
     MemberId: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5044,7 +5190,11 @@ export namespace Prisma {
 
   export type ChatUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5054,7 +5204,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     roomId?: StringFieldUpdateOperationsInput | string
     MemberId?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5260,6 +5414,17 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type MemberScalarRelationFilter = {
     is?: MemberWhereInput
     isNot?: MemberWhereInput
@@ -5269,16 +5434,28 @@ export namespace Prisma {
     id?: SortOrder
     roomId?: SortOrder
     MemberId?: SortOrder
+    reference?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    type?: SortOrder
     message?: SortOrder
     isDeleted?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
+  export type ChatAvgOrderByAggregateInput = {
+    fileSize?: SortOrder
+  }
+
   export type ChatMaxOrderByAggregateInput = {
     id?: SortOrder
     roomId?: SortOrder
     MemberId?: SortOrder
+    reference?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    type?: SortOrder
     message?: SortOrder
     isDeleted?: SortOrder
     createdAt?: SortOrder
@@ -5289,10 +5466,34 @@ export namespace Prisma {
     id?: SortOrder
     roomId?: SortOrder
     MemberId?: SortOrder
+    reference?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    type?: SortOrder
     message?: SortOrder
     isDeleted?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type ChatSumOrderByAggregateInput = {
+    fileSize?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type MemberCreateNestedManyWithoutRoomInput = {
@@ -5463,6 +5664,14 @@ export namespace Prisma {
     connect?: MemberWhereUniqueInput
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type RoomUpdateOneRequiredWithoutChatsNestedInput = {
     create?: XOR<RoomCreateWithoutChatsInput, RoomUncheckedCreateWithoutChatsInput>
     connectOrCreate?: RoomCreateOrConnectWithoutChatsInput
@@ -5601,6 +5810,33 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type MemberCreateWithoutRoomInput = {
     id?: string
     userId: string
@@ -5637,7 +5873,11 @@ export namespace Prisma {
 
   export type ChatCreateWithoutRoomInput = {
     id?: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5647,7 +5887,11 @@ export namespace Prisma {
   export type ChatUncheckedCreateWithoutRoomInput = {
     id?: string
     MemberId: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5717,7 +5961,11 @@ export namespace Prisma {
     id?: StringFilter<"Chat"> | string
     roomId?: StringFilter<"Chat"> | string
     MemberId?: StringFilter<"Chat"> | string
-    message?: StringFilter<"Chat"> | string
+    reference?: StringNullableFilter<"Chat"> | string | null
+    fileName?: StringNullableFilter<"Chat"> | string | null
+    fileSize?: IntNullableFilter<"Chat"> | number | null
+    type?: StringFilter<"Chat"> | string
+    message?: StringNullableFilter<"Chat"> | string | null
     isDeleted?: BoolFilter<"Chat"> | boolean
     createdAt?: DateTimeFilter<"Chat"> | Date | string
     updatedAt?: DateTimeFilter<"Chat"> | Date | string
@@ -5752,7 +6000,11 @@ export namespace Prisma {
 
   export type ChatCreateWithoutMemberInput = {
     id?: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5762,7 +6014,11 @@ export namespace Prisma {
   export type ChatUncheckedCreateWithoutMemberInput = {
     id?: string
     roomId: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5965,7 +6221,11 @@ export namespace Prisma {
   export type ChatCreateManyRoomInput = {
     id?: string
     MemberId: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -6008,7 +6268,11 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6018,7 +6282,11 @@ export namespace Prisma {
   export type ChatUncheckedUpdateWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     MemberId?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6027,7 +6295,11 @@ export namespace Prisma {
   export type ChatUncheckedUpdateManyWithoutRoomInput = {
     id?: StringFieldUpdateOperationsInput | string
     MemberId?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6036,7 +6308,11 @@ export namespace Prisma {
   export type ChatCreateManyMemberInput = {
     id?: string
     roomId: string
-    message: string
+    reference?: string | null
+    fileName?: string | null
+    fileSize?: number | null
+    type?: string
+    message?: string | null
     isDeleted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -6044,7 +6320,11 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutMemberInput = {
     id?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6054,7 +6334,11 @@ export namespace Prisma {
   export type ChatUncheckedUpdateWithoutMemberInput = {
     id?: StringFieldUpdateOperationsInput | string
     roomId?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6063,7 +6347,11 @@ export namespace Prisma {
   export type ChatUncheckedUpdateManyWithoutMemberInput = {
     id?: StringFieldUpdateOperationsInput | string
     roomId?: StringFieldUpdateOperationsInput | string
-    message?: StringFieldUpdateOperationsInput | string
+    reference?: NullableStringFieldUpdateOperationsInput | string | null
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
+    fileSize?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     isDeleted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

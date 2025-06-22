@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState, useRef, useCallback } from "react"
 import { redirect, useParams } from "next/navigation"
 import { useUser } from "@clerk/clerk-react"
@@ -41,15 +40,17 @@ import {
   PERMISSION,
   MEMBERS_UPDATE,
   REMOVED,
-  LEAVE,
+  SEND_FILE,
 } from "../../../../types"
-import { User } from "@clerk/nextjs/server"
+import { FireBaseStorage } from "../../../../firebaseConfig"
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
+import type { User } from "@clerk/nextjs/server"
 
 interface ChatMessage {
   id: string
   userId: string
   user: User
-  message: string
+  message?: string
   isDeleted: boolean
   createdAt: string
   type?: "text" | "image" | "file"
@@ -74,8 +75,12 @@ export default function RoomPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [pending, setPending] = useState<any[]>([])
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [isAdmin, setIsAdmin] = useState<Boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [adminId, setAdminId] = useState<string | null>(null)
+  const [fileUpload, setFileUpload] = useState<{ progress: number; isUploading: boolean }>({
+    progress: 0,
+    isUploading: false,
+  })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -88,57 +93,55 @@ export default function RoomPage() {
   }, [messages])
 
   const fetchAdmin = useCallback(async () => {
-        try {
-          const response = await fetch(`/api/v1/room/get-admin`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ roomId: roomId }),
-          })
+    try {
+      const response = await fetch(`/api/v1/room/get-admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ roomId: roomId }),
+      })
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch admin status")
-          }
+      if (!response.ok) {
+        throw new Error("Failed to fetch admin status")
+      }
 
-          const result = await response.json()
-          console.log(result);
+      const result = await response.json()
+      console.log(result)
 
-          setIsAdmin(result.adminId === user?.id)
+      setIsAdmin(result.adminId === user?.id)
 
-          setAdminId(result.adminId)
+      setAdminId(result.adminId)
+    } catch (error) {
+      console.error("Error fetching admin status:", error)
+    }
+  }, [user, roomId])
 
-        } catch (error) {
-          console.error("Error fetching admin status:", error)
-        }
-    }, [user, roomId])
+  const fetchMember = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/v1/room/get-members`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ roomId: roomId }),
+      })
 
-    const fetchMember = useCallback(async () => {
-        try {
-          const response = await fetch(`/api/v1/room/get-members`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ roomId: roomId }),
-          })
+      if (!response.ok) {
+        throw new Error("Failed to fetch admin status")
+      }
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch admin status")
-          }
+      const result = await response.json()
 
-          const result = await response.json()
+      console.log("Fetched members:", result.members)
 
-          console.log("Fetched members:", result.members);
-
-          if(result.members.length > 0) {
-            setMembers(result.members)
-          }
-
-        } catch (error) {
-          console.error("Error fetching admin status:", error)
-        }
-    }, [user, roomId])
+      if (result.members.length > 0) {
+        setMembers(result.members)
+      }
+    } catch (error) {
+      console.error("Error fetching admin status:", error)
+    }
+  }, [user, roomId])
 
   useEffect(() => {
     if (!socket || !user || !roomId) return
@@ -160,13 +163,15 @@ export default function RoomPage() {
           console.log("Pending users:", data)
           break
         case DELETE_MESSAGE:
-          setMessages((prev) => prev.map((msg) => {
-            if (msg.id === data.messageId) {
-              return { ...msg, isDeleted: true }
-            }else {
-              return msg;
-            }
-          }))
+          setMessages((prev) =>
+            prev.map((msg) => {
+              if (msg.id === data.messageId) {
+                return { ...msg, isDeleted: true }
+              } else {
+                return msg
+              }
+            }),
+          )
           break
         case REMOVED:
           alert(`${data.user.fullName} has been removed from the room.`)
@@ -180,11 +185,10 @@ export default function RoomPage() {
     }
 
     socket.addEventListener("message", handleMessage)
-    if(user) fetchAdmin()
-    if(roomId) fetchMember()
+    if (user) fetchAdmin()
+    if (roomId) fetchMember()
 
     return () => socket.removeEventListener("message", handleMessage)
-
   }, [socket, user, roomId])
 
   const sendMessage = () => {
@@ -205,30 +209,78 @@ export default function RoomPage() {
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
 
-    // Create a file message
-    const fileMessage = {
-      type: NEW_MESSAGE,
-      data: {
-        messages: `Shared a file: ${file.name}`,
-        user,
-        roomId,
-        messageType: file.type.startsWith("image/") ? "image" : "file",
-        fileName: file.name,
-        fileSize: file.size,
-        // In a real app, you'd upload the file to a server and get a URL
-        fileUrl: URL.createObjectURL(file),
+    setFileUpload({ progress: 0, isUploading: true });
+
+    const storageRef = ref(FireBaseStorage, `${new Date().getTime()}_${selectedFile.name}`); // Good idea to make filenames unique!
+
+    // Upload the file with progress tracking
+    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        // This 'next' callback fires multiple times during the upload
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log(`Upload progress: ${Math.round(progress)}%`);
+        setFileUpload({ progress: Math.round(progress), isUploading: true });
       },
-    }
+      (error) => {
+        // This 'error' callback fires if something goes wrong during upload
+        console.error('Error uploading file to Firebase Storage:', error);
+        setFileUpload({ progress: 0, isUploading: false });
+        // You might want to show an error message to the user here
+      },
+      async () => {
+        // This 'complete' callback fires ONLY AFTER the upload is 100% finished
+        try {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log("Uploaded file, download URL:", downloadUrl);
+          setFileUpload({ progress: 100, isUploading: false });
 
-    socket?.send(JSON.stringify(fileMessage))
+          // NOW, and ONLY NOW, create the file message with the correct download URL
+          const fileMessage = {
+            type: SEND_FILE,
+            data: {
+              user,
+              roomId,
+              file: downloadUrl, // downloadUrl is guaranteed to be set here!
+              fileName: selectedFile.name,
+              fileSize: selectedFile.size,
+            },
+          };
 
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+          console.log("file being sent", fileMessage);
+          socket?.send(JSON.stringify(fileMessage));
+
+        } catch (error) {
+          console.error('Error getting download URL or sending message:', error);
+          setFileUpload({ progress: 0, isUploading: false }); // Reset state on error
+        } finally {
+          // Always reset file input, whether successful or not
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+        }
+      },
+    );
+
+    // The code here runs immediately after starting the upload,
+    // NOT after it completes. So, any logic needing the downloadUrl
+    // must be inside the 'complete' callback or a .then() block.
+  };
+
+
+  const downloadFile = (fileUrl: string, fileName: string) => {
+    const link = document.createElement("a")
+    link.href = fileUrl
+    link.download = fileName
+    link.target = "_blank";
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const addEmoji = (emoji: string) => {
@@ -304,22 +356,22 @@ export default function RoomPage() {
   const renderMessage = (msg: ChatMessage) => {
     const isOwnMessage = msg.user.id === user?.id
 
-    console.log("Rendering message:", msg, isOwnMessage);
+    console.log("Rendering message:", msg, isOwnMessage)
 
     return (
       <div
         key={msg.id}
-        className={`flex items-start gap-3 p-4 rounded-lg transition-colors hover:bg-muted/50 ${isOwnMessage ? "bg-primary/5" : ""
+        className={`flex items-start gap-3 p-4 rounded-lg transition-colors hover:bg-muted/50 group ${isOwnMessage ? "flex-row-reverse ml-12" : "mr-12"
           }`}
       >
         <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src={msg.user.imageUrl} />
+          <AvatarImage src={msg.user.imageUrl || "/placeholder.svg"} />
           <AvatarFallback className="text-xs">{msg.user.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-sm">{msg.user?.fullName || 'U'}</span>
+        <div className={`flex-1 min-w-0 ${isOwnMessage ? "text-right" : "text-left"}`}>
+          <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? "flex-row-reverse" : ""}`}>
+            <span className="font-semibold text-sm">{msg.user?.fullName || "U"}</span>
             <span className="text-xs text-muted-foreground">{formatTime(msg.createdAt)}</span>
             {isOwnMessage && (
               <Badge variant="secondary" className="text-xs">
@@ -328,29 +380,51 @@ export default function RoomPage() {
             )}
           </div>
 
-          {!msg.isDeleted ? (
-            msg.type === "image" && msg.fileUrl ? (
-              <div className="mt-2">
-                <img src={msg.fileUrl || "/placeholder.svg"} alt={msg.fileName} className="max-w-xs rounded-lg border" />
-                <p className="text-sm text-muted-foreground mt-1">{msg.fileName}</p>
-              </div>
-            ) : msg.type === "file" && msg.fileUrl ? (
-              <div className="mt-2 p-3 border rounded-lg bg-muted/30 max-w-xs">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{msg.fileName}</p>
-                    <p className="text-xs text-muted-foreground">{msg.fileSize && formatFileSize(msg.fileSize)}</p>
-                  </div>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                    <Download className="h-3 w-3" />
-                  </Button>
+          <div
+            className={`inline-block max-w-[80%] ${isOwnMessage ? "bg-primary text-primary-foreground" : "bg-muted"} rounded-lg p-3 mt-1`}
+          >
+            {!msg.isDeleted ? (
+              msg.type === "image" && msg.fileUrl ? (
+                <div>
+                  <img
+                    src={msg.fileUrl || "/placeholder.svg"}
+                    alt={msg.fileName}
+                    className="max-w-xs rounded-lg border"
+                  />
+                  <p
+                    className={`text-sm mt-1 ${isOwnMessage ? "text-primary-foreground/80" : "text-muted-foreground"}`}
+                  >
+                    {msg.fileName}
+                  </p>
                 </div>
-              </div>
+              ) : msg.type === "file" && msg.fileUrl ? (
+                <div
+                  className={`p-3 border rounded-lg max-w-xs ${isOwnMessage ? "bg-primary-foreground/10" : "bg-muted/30"}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{msg.fileName}</p>
+                      <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                        {msg.fileSize && formatFileSize(msg.fileSize)}
+                      </p>
+                    </div>
+                    <Button onClick={() => downloadFile(msg.fileUrl!, msg.fileName!)} size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed break-words">{msg.message}</p>
+              )
             ) : (
-              <p className="text-sm leading-relaxed break-words">{msg.message}</p>
-            )
-          ) : <p className="text-sm leading-relaxed break-words">This Message is Deleted</p>}
+              <p
+                className={`text-sm leading-relaxed break-words italic ${isOwnMessage ? "text-primary-foreground/60" : "text-muted-foreground"}`}
+              >
+                This Message is Deleted
+              </p>
+            )}
+          </div>
         </div>
 
         {(isAdmin || isOwnMessage) && (
@@ -391,12 +465,12 @@ export default function RoomPage() {
                   <Users className="h-4 w-4" />
                   Members ({members.length})
                 </TabsTrigger>
-                {(isAdmin) && 
-                  (<TabsTrigger value="pending" className="flex items-center gap-2">
+                {isAdmin && (
+                  <TabsTrigger value="pending" className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Pending ({pending.length})
-                  </TabsTrigger>)
-                }
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="members" className="mt-4">
@@ -414,12 +488,8 @@ export default function RoomPage() {
                               <div>
                                 <p className="font-medium text-sm">{member?.fullName}</p>
                                 <div className="flex items-center gap-2">
-                                  <div
-                                    className={`h-2 w-2 rounded-full bg-green-500`}
-                                  />
-                                  <span className="text-xs text-muted-foreground">
-                                    Online
-                                  </span>
+                                  <div className={`h-2 w-2 rounded-full bg-green-500`} />
+                                  <span className="text-xs text-muted-foreground">Online</span>
                                   {member.muted && (
                                     <Badge variant="secondary" className="text-xs">
                                       Muted
@@ -429,8 +499,8 @@ export default function RoomPage() {
                               </div>
                             </div>
 
-                            {isAdmin &&
-                              (<DropdownMenu>
+                            {isAdmin && (
+                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                     <MoreVertical className="h-4 w-4" />
@@ -446,8 +516,8 @@ export default function RoomPage() {
                                     Remove
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
-                              </DropdownMenu>)
-                            }
+                              </DropdownMenu>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -519,9 +589,7 @@ export default function RoomPage() {
                         <p className="font-medium text-sm">{member?.fullName}</p>
                         <div className="flex items-center gap-2">
                           <div className={`h-2 w-2 rounded-full bg-green-500`} />
-                          <span className="text-xs text-muted-foreground">
-                            Online
-                          </span>
+                          <span className="text-xs text-muted-foreground">Online</span>
                         </div>
                       </div>
                     </div>
@@ -566,21 +634,41 @@ export default function RoomPage() {
 
         {/* Message Input */}
         <div className="p-4 border-t bg-background">
+          {fileUpload.isUploading && (
+            <div className="mb-3 p-3 bg-muted rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Uploading file...</span>
+                <span className="text-sm text-muted-foreground">{fileUpload.progress}%</span>
+              </div>
+              <div className="w-full bg-muted-foreground/20 rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${fileUpload.progress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault()
-              sendMessage()
+              if (!fileUpload.isUploading) {
+                sendMessage()
+              }
             }}
             className="flex items-end gap-2"
           >
             <div className="flex-1 relative">
               <Input
-                placeholder="Type your message..."
+                placeholder={
+                  fileUpload.isUploading ? "Please wait for file upload to complete..." : "Type your message..."
+                }
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                disabled={fileUpload.isUploading}
                 className="pr-20 min-h-[40px] resize-none"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey && !fileUpload.isUploading) {
                     e.preventDefault()
                     sendMessage()
                   }
@@ -590,7 +678,13 @@ export default function RoomPage() {
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                   <PopoverTrigger asChild>
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      disabled={fileUpload.isUploading}
+                    >
                       <Smile className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -617,13 +711,14 @@ export default function RoomPage() {
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={fileUpload.isUploading}
                 >
                   <Paperclip className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            <Button type="submit" disabled={!input.trim()} className="h-10">
+            <Button type="submit" disabled={!input.trim() || fileUpload.isUploading} className="h-10">
               <Send className="h-4 w-4" />
             </Button>
           </form>
@@ -634,10 +729,10 @@ export default function RoomPage() {
             className="hidden"
             onChange={handleFileUpload}
             accept="image/*,.pdf,.doc,.docx,.txt"
+            disabled={fileUpload.isUploading}
           />
         </div>
       </div>
     </div>
   )
 }
-

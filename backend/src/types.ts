@@ -23,3 +23,4 @@ export const REMOVE_USER = 'remove-user';
 export const REMOVED = 'removed';
 export const DELETE_MESSAGE = 'delete-message';
 export const LEAVE = 'leave';
+export const SEND_FILE = 'send-file';

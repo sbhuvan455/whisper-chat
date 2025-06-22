@@ -13,3 +13,4 @@ export const NEW_MESSAGE = 'new-message';
 export const PERMISSION = 'permission';
 export const MEMBERS_UPDATE = 'members-update';
 export const LEAVE = 'leave';
+export const SEND_FILE = 'send-file';

@@ -48,6 +48,9 @@ wss.on('connection', (ws) => {
         if (type === types_1.NEW_MESSAGE) {
             chatManager.sendMessage(ws, data.user, data.roomId, data.message);
         }
+        if (type === types_1.SEND_FILE) {
+            chatManager.sendFile(ws, data.user, data.roomId, data.file, data.fileName, data.fileSize);
+        }
         if (type === types_1.REMOVE_USER) {
             chatManager.removeUser(data.roomId, data.user, data.adminId);
         }

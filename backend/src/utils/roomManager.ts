@@ -25,7 +25,7 @@ export class RoomManager {
         });
 
         for (const [, memberWs] of this.members) {
-            if(memberWs == ws) continue;
+            if (memberWs == ws) continue;
             memberWs.send(payload);
         }
     }
@@ -138,6 +138,56 @@ export class RoomManager {
         }
     }
 
+    async handleFile(sender: any, fileUrl: string, fileName: string, fileSize: number) {
+        try {
+            if (this.isMuted(sender.id)) throw new Error("You are muted and cannot send files");
+
+            console.log("Handling file in room manager:", fileUrl, fileName, fileSize);
+
+            const member = await prisma.member.findFirst({
+                where: {
+                    userId: sender.id,
+                    roomId: this.roomId,
+                },
+            });
+
+            if (!member) throw new Error("Member not found in this room");
+
+            const chat = await prisma.chat.create({
+                data: {
+                    reference: fileUrl,
+                    fileName: fileName,
+                    fileSize: fileSize,
+                    roomId: this.roomId,
+                    MemberId: member.id,
+                    type: 'file',
+                },
+            });
+
+            if (!chat) throw new Error("Error creating chat message with file");
+            console.log("File chat created:", chat);
+
+            const payload = JSON.stringify({
+                type: NEW_MESSAGE,
+                data: {
+                    id: chat?.id,
+                    user: sender,
+                    type: 'file',
+                    fileUrl: chat?.reference,
+                    fileName: chat?.fileName,
+                    fileSize: chat?.fileSize,
+                    createdAt: chat?.createdAt,
+                },
+            });
+
+            for (const [, memberWs] of this.members) {
+                memberWs.send(payload);
+            }
+        } catch (error) {
+            console.error("Error handling file:", error);
+        }
+    }
+
     async deleteMessage(chatId: string, userId: string) {
 
         try {
@@ -149,26 +199,26 @@ export class RoomManager {
             console.log("Chat found:", chat, "UserId is", userId);
 
             if (!chat) throw new Error("Message not found");
-    
-            if(userId !== chat?.Member.userId && userId !== this.adminId) throw new Error("You are not authorized to delete this message");
-    
+
+            if (userId !== chat?.Member.userId && userId !== this.adminId) throw new Error("You are not authorized to delete this message");
+
             const deletedChat = await prisma.chat.update({
                 where: { id: chatId },
                 data: {
                     isDeleted: true,
                 }
             })
-    
+
             if (!deletedChat) throw new Error("Message not found or already deleted");
-    
+
             const payload = JSON.stringify({
                 type: DELETE_MESSAGE,
                 data: {
                     messageId: chatId
                 },
             });
-    
-            for(const [, memberWs] of this.members) {
+
+            for (const [, memberWs] of this.members) {
                 memberWs.send(payload);
             }
             console.log("Message deleted successfully:", deletedChat);

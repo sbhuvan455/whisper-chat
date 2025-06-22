@@ -46,7 +46,11 @@ model Chat {
   Room      Room     @relation(fields: [roomId], references: [id])
   MemberId  String
   Member    Member   @relation(fields: [MemberId], references: [id])
-  message   String
+  reference String?
+  fileName  String?
+  fileSize  Int?
+  type      String   @default("text") // e.g., 'text', 'file'
+  message   String?
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
