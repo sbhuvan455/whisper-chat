@@ -67,6 +67,42 @@ class RoomManager {
             this.muted.delete(user.id);
         });
     }
+    leaveRoom(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // First, find the member by userId and roomId to get the unique id
+            const memberRecord = yield __1.prisma.member.findFirst({
+                where: {
+                    userId: userId,
+                    roomId: this.roomId,
+                }
+            });
+            if (!memberRecord)
+                return;
+            yield __1.prisma.member.update({
+                where: {
+                    id: memberRecord.id,
+                },
+                data: {
+                    online: false,
+                }
+            });
+            const ws = this.members.get(userId);
+            if (!ws)
+                return;
+            if (ws) {
+                this.members.delete(userId);
+            }
+            for (const [, memberWs] of this.members) {
+                memberWs.send(JSON.stringify({
+                    type: types_1.MEMBER_LEAVE,
+                    data: {
+                        userId: userId,
+                        fullName: memberRecord.fullName,
+                    },
+                }));
+            }
+        });
+    }
     muteMember(userId) {
         this.muted.add(userId);
     }
@@ -221,7 +257,7 @@ class RoomManager {
                 data: { isActive: false },
             });
             for (const [, ws] of this.members) {
-                ws.send(JSON.stringify({ type: 'ROOM_CLOSED' }));
+                ws.send(JSON.stringify({ type: types_1.ROOM_CLOSED }));
                 ws.close();
             }
             this.members.clear();

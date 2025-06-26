@@ -57,8 +57,11 @@ wss.on('connection', (ws) => {
         if (type === types_1.DELETE_MESSAGE) {
             chatManager.deleteMessage(data.roomId, data.messageId, data.userId);
         }
-        if (type === 'leave') {
-            chatManager.leaveRoom(ws, data.roomId, data.user);
+        if (type === types_1.END_ROOM) {
+            chatManager.endRoom(data.roomId, data.userId);
+        }
+        if (type === types_1.LEAVE) {
+            chatManager.leaveRoom(ws, data.roomId, data.userId);
         }
     });
 });

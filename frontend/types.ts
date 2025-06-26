@@ -14,3 +14,6 @@ export const PERMISSION = 'permission';
 export const MEMBERS_UPDATE = 'members-update';
 export const LEAVE = 'leave';
 export const SEND_FILE = 'send-file';
+export const END_ROOM = 'end-room';
+export const ROOM_CLOSED = 'room-closed';
+export const MEMBER_LEAVE = 'member-leave';

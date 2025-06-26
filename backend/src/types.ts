@@ -24,3 +24,6 @@ export const REMOVED = 'removed';
 export const DELETE_MESSAGE = 'delete-message';
 export const LEAVE = 'leave';
 export const SEND_FILE = 'send-file';
+export const END_ROOM = 'end-room';
+export const ROOM_CLOSED = 'room-closed';
+export const MEMBER_LEAVE = 'member-leave';

@@ -8,7 +8,7 @@ import { PrismaClient } from '../generated/prisma'
 
 import roomRouter from "./routes/room.routes"
 import { ChatManager } from './utils/chatManager';
-import { ACCEPT_USER, CREATE_ROOM, DELETE_MESSAGE, JOIN_ROOM, NEW_MESSAGE, REMOVE_USER, SEND_FILE } from './types';
+import { ACCEPT_USER, CREATE_ROOM, DELETE_MESSAGE, END_ROOM, JOIN_ROOM, LEAVE, NEW_MESSAGE, REMOVE_USER, SEND_FILE } from './types';
 import { initializeActiveRooms } from './controller/room.controller';
 
 export const app = express();
@@ -71,8 +71,12 @@ wss.on('connection', (ws) => {
       chatManager.deleteMessage(data.roomId, data.messageId, data.userId);
     }
 
-    if (type === 'leave') {
-      chatManager.leaveRoom(ws, data.roomId, data.user);
+    if (type === END_ROOM) {
+      chatManager.endRoom(data.roomId, data.userId);
+    }
+
+    if (type === LEAVE) {
+      chatManager.leaveRoom(ws, data.roomId, data.userId);
     }
   })
 });

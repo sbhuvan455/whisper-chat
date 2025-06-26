@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SEND_FILE = exports.LEAVE = exports.DELETE_MESSAGE = exports.REMOVED = exports.REMOVE_USER = exports.MEMBERS_UPDATE = exports.NEW_MESSAGE = exports.ACCEPT_USER = exports.PERMISSION = exports.ADMIN_NOT_IN_ROOM = exports.ROOM_NOT_FOUND = exports.JOIN_ROOM = exports.CREATE_ROOM = void 0;
+exports.MEMBER_LEAVE = exports.ROOM_CLOSED = exports.END_ROOM = exports.SEND_FILE = exports.LEAVE = exports.DELETE_MESSAGE = exports.REMOVED = exports.REMOVE_USER = exports.MEMBERS_UPDATE = exports.NEW_MESSAGE = exports.ACCEPT_USER = exports.PERMISSION = exports.ADMIN_NOT_IN_ROOM = exports.ROOM_NOT_FOUND = exports.JOIN_ROOM = exports.CREATE_ROOM = void 0;
 exports.CREATE_ROOM = 'create-room';
 exports.JOIN_ROOM = 'join-room';
 exports.ROOM_NOT_FOUND = 'room-not-found';
@@ -14,3 +14,6 @@ exports.REMOVED = 'removed';
 exports.DELETE_MESSAGE = 'delete-message';
 exports.LEAVE = 'leave';
 exports.SEND_FILE = 'send-file';
+exports.END_ROOM = 'end-room';
+exports.ROOM_CLOSED = 'room-closed';
+exports.MEMBER_LEAVE = 'member-leave';

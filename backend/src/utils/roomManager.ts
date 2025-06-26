@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 import { prisma } from '..';
 import { Chat } from '../../generated/prisma';
-import { DELETE_MESSAGE, MEMBERS_UPDATE, NEW_MESSAGE, REMOVED } from '../types';
+import { DELETE_MESSAGE, MEMBER_LEAVE, MEMBERS_UPDATE, NEW_MESSAGE, REMOVED, ROOM_CLOSED } from '../types';
 
 export class RoomManager {
     private roomId: string;
@@ -65,6 +65,45 @@ export class RoomManager {
 
         this.members.delete(user.id);
         this.muted.delete(user.id);
+    }
+
+    async leaveRoom(userId: string) {
+        // First, find the member by userId and roomId to get the unique id
+        const memberRecord = await prisma.member.findFirst({
+            where: {
+                userId: userId,
+                roomId: this.roomId,
+            }
+        });
+
+        if (!memberRecord) return;
+
+        await prisma.member.update({
+            where: {
+                id: memberRecord.id,
+            },
+            data: {
+                online: false,
+            }
+        });
+
+        const ws = this.members.get(userId);
+
+        if (!ws) return;
+
+        if (ws) {
+            this.members.delete(userId);
+        }
+
+        for (const [, memberWs] of this.members) {
+            memberWs.send(JSON.stringify({
+                type: MEMBER_LEAVE,
+                data: {
+                    userId: userId,
+                    fullName: memberRecord.fullName,
+                },
+            }));
+        }
     }
 
     muteMember(userId: string) {
@@ -234,7 +273,7 @@ export class RoomManager {
         });
 
         for (const [, ws] of this.members) {
-            ws.send(JSON.stringify({ type: 'ROOM_CLOSED' }));
+            ws.send(JSON.stringify({ type: ROOM_CLOSED }));
             ws.close();
         }
 

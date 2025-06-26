@@ -198,15 +198,15 @@ export class ChatManager {
         roomManager.handleFile(user, fileUrl, fileName, fileSize);
     }
 
-    public leaveRoom(ws: WebSocket, roomId: string, user: User) {
+    public leaveRoom(ws: WebSocket, roomId: string, userId: string) {
         const roomManager = this.roomObj.get(roomId);
+
         if (!roomManager) {
             ws.send(JSON.stringify({ type: ROOM_NOT_FOUND, data: { roomId } }));
             return;
         }
 
-        roomManager.removeMember(user);
-        ws.send(JSON.stringify({ type: REMOVED, data: { message: "You have left the room", roomId } }));
+        roomManager.leaveRoom(userId);
     }
 
     public deleteMessage(roomId: string, chatId: string, userId: string) {

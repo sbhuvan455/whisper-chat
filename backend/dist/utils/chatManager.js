@@ -187,14 +187,13 @@ class ChatManager {
             roomManager.handleFile(user, fileUrl, fileName, fileSize);
         });
     }
-    leaveRoom(ws, roomId, user) {
+    leaveRoom(ws, roomId, userId) {
         const roomManager = this.roomObj.get(roomId);
         if (!roomManager) {
             ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
             return;
         }
-        roomManager.removeMember(user);
-        ws.send(JSON.stringify({ type: types_1.REMOVED, data: { message: "You have left the room", roomId } }));
+        roomManager.leaveRoom(userId);
     }
     deleteMessage(roomId, chatId, userId) {
         const roomManager = this.roomObj.get(roomId);

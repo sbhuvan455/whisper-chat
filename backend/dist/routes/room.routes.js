@@ -8,4 +8,5 @@ const router = (0, express_1.Router)();
 router.post("/create-room", api_controller_1.createRoom);
 router.post("/get-admin", api_controller_1.getAdminId);
 router.post("/get-members", api_controller_1.getAllMembers);
+router.get("/get-chat-summary/:roomId", api_controller_1.getChatSummary);
 exports.default = router;
