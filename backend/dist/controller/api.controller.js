@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getChatSummary = exports.getAllMembers = exports.getAdminId = exports.createRoom = void 0;
 const __1 = require("..");
 const generative_ai_1 = require("@google/generative-ai");
-const genAI = new generative_ai_1.GoogleGenerativeAI('AIzaSyCtKJDY_Gsv6OYj8Z5XpdslIWfbg-Wqpyo');
+const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('Creating room with data:', req.body);

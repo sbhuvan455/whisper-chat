@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState, useRef, useCallback } from "react"
-import { redirect, useParams, useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useUser } from "@clerk/clerk-react"
 import { useSocket } from "@/context/socketProvider"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,7 +14,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { EMOJI_LIST } from "@/components/emoji"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Send, Smile, Paperclip, MoreVertical, Trash2, UserMinus, VolumeX, Check, X, Users, Clock, Download, FileText, LogOut, Power, Menu } from 'lucide-react'
+import {
+  Send,
+  Smile,
+  Paperclip,
+  MoreVertical,
+  UserMinus,
+  VolumeX,
+  Check,
+  X,
+  Users,
+  Clock,
+  FileText,
+  LogOut,
+  Power,
+  Menu,
+  BotMessageSquare,
+} from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   DELETE_MESSAGE,
@@ -31,32 +47,14 @@ import {
   ROOM_CLOSED,
   LEAVE,
   MEMBER_LEAVE,
+  type ChatMessage,
+  type Member,
 } from "../../../../types"
 import { FireBaseStorage } from "../../../../firebaseConfig"
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
-import type { User } from "@clerk/nextjs/server"
 import { useToast } from "@/hooks/use-toast"
-import { Toaster } from '@/components/ui/toaster'
-
-interface ChatMessage {
-  id: string
-  userId: string
-  user: User
-  message?: string
-  isDeleted: boolean
-  createdAt: string
-  type?: "text" | "image" | "file"
-  fileUrl?: string
-  fileName?: string
-  fileSize?: number
-}
-
-interface Member {
-  id: string
-  fullName: string
-  image_url: string
-  muted?: boolean
-}
+import { Toaster } from "@/components/ui/toaster"
+import message from "@/components/message"
 
 export default function RoomPage() {
   const { id: roomId } = useParams()
@@ -83,7 +81,12 @@ export default function RoomPage() {
   const [showSummary, setShowSummary] = useState(false)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current) {
+      const scrollContainer = messagesEndRef.current.querySelector("[data-radix-scroll-area-viewport]")
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight
+      }
+    }
   }
 
   useEffect(() => {
@@ -180,7 +183,7 @@ export default function RoomPage() {
             // router to join room page after 3 seconds
             setTimeout(() => {
               router.push("/")
-            }, 3000);
+            }, 3000)
           } else {
             toast({
               title: "User Removed",
@@ -209,7 +212,7 @@ export default function RoomPage() {
 
           setTimeout(() => {
             router.push("/")
-          }, 3000);
+          }, 3000)
       }
     }
 
@@ -227,7 +230,11 @@ export default function RoomPage() {
       type: NEW_MESSAGE,
       data: {
         message: input,
-        user,
+        user: {
+          id: user?.id,
+          fullName: user?.fullName || "",
+          imageUrl: user?.imageUrl || null,
+        },
         roomId,
       },
     }
@@ -243,39 +250,33 @@ export default function RoomPage() {
 
     setFileUpload({ progress: 0, isUploading: true })
 
-    const storageRef = ref(FireBaseStorage, `${new Date().getTime()}_${selectedFile.name}`) // Good idea to make filenames unique!
+    const storageRef = ref(FireBaseStorage, `${new Date().getTime()}_${selectedFile.name}`)
 
-    // Upload the file with progress tracking
     const uploadTask = uploadBytesResumable(storageRef, selectedFile)
 
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        // This 'next' callback fires multiple times during the upload
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         console.log(`Upload progress: ${Math.round(progress)}%`)
         setFileUpload({ progress: Math.round(progress), isUploading: true })
       },
       (error) => {
-        // This 'error' callback fires if something goes wrong during upload
         console.error("Error uploading file to Firebase Storage:", error)
         setFileUpload({ progress: 0, isUploading: false })
-        // You might want to show an error message to the user here
       },
       async () => {
-        // This 'complete' callback fires ONLY AFTER the upload is 100% finished
         try {
           const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref)
           console.log("Uploaded file, download URL:", downloadUrl)
           setFileUpload({ progress: 100, isUploading: false })
 
-          // NOW, and ONLY NOW, create the file message with the correct download URL
           const fileMessage = {
             type: SEND_FILE,
             data: {
               user,
               roomId,
-              file: downloadUrl, // downloadUrl is guaranteed to be set here!
+              file: downloadUrl,
               fileName: selectedFile.name,
               fileSize: selectedFile.size,
             },
@@ -285,29 +286,14 @@ export default function RoomPage() {
           socket?.send(JSON.stringify(fileMessage))
         } catch (error) {
           console.error("Error getting download URL or sending message:", error)
-          setFileUpload({ progress: 0, isUploading: false }) // Reset state on error
+          setFileUpload({ progress: 0, isUploading: false })
         } finally {
-          // Always reset file input, whether successful or not
           if (fileInputRef.current) {
             fileInputRef.current.value = ""
           }
         }
       },
     )
-
-    // The code here runs immediately after starting the upload,
-    // NOT after it completes. So, any logic needing the downloadUrl
-    // must be inside the 'complete' callback or a .then() block.
-  }
-
-  const downloadFile = (fileUrl: string, fileName: string) => {
-    const link = document.createElement("a")
-    link.href = fileUrl
-    link.download = fileName
-    link.target = "_blank"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
   }
 
   const addEmoji = (emoji: string) => {
@@ -368,18 +354,6 @@ export default function RoomPage() {
     setPending((prevPending) => prevPending.filter((p) => p.user.id !== pendingUser.user.id))
   }
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-  }
-
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
-
   const leaveRoom = async () => {
     if (!socket || !user || !roomId) return
 
@@ -387,7 +361,7 @@ export default function RoomPage() {
       JSON.stringify({
         type: LEAVE,
         data: { roomId, userId: user.id },
-      })
+      }),
     )
 
     // Optionally redirect or show a message
@@ -399,7 +373,7 @@ export default function RoomPage() {
       JSON.stringify({
         type: END_ROOM,
         data: { roomId, userId: user?.id },
-      })
+      }),
     )
   }
 
@@ -420,121 +394,15 @@ export default function RoomPage() {
       toast({
         title: "Error",
         description: "Failed to fetch chat summary. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setIsLoadingSummary(false)
     }
   }
 
-  const renderMessage = (msg: ChatMessage) => {
-    const isOwnMessage = msg.user.id === user?.id
-
-    console.log("Rendering message:", msg, isOwnMessage)
-
-    return (
-      <div
-        key={msg.id}
-        className={`flex items-start gap-2 sm:gap-3 p-2 sm:p-4 rounded-lg transition-colors hover:bg-muted/50 group ${isOwnMessage ? "flex-row-reverse ml-4 sm:ml-12" : "mr-4 sm:mr-12"
-          }`}
-      >
-        <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
-          <AvatarImage src={msg.user.imageUrl || "/placeholder.svg"} />
-          <AvatarFallback className="text-xs">{msg.user.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-
-        <div className={`flex-1 min-w-0 ${isOwnMessage ? "text-right" : "text-left"}`}>
-          <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? "flex-row-reverse" : ""}`}>
-            <span className="font-semibold text-xs sm:text-sm truncate">{msg.user?.fullName || "U"}</span>
-            <span className="text-xs text-muted-foreground flex-shrink-0">{formatTime(msg.createdAt)}</span>
-            {isOwnMessage && (
-              <Badge variant="secondary" className="text-xs flex-shrink-0">
-                You
-              </Badge>
-            )}
-          </div>
-
-          <div
-            className={`inline-block max-w-[85%] sm:max-w-[80%] ${isOwnMessage ? "bg-primary text-primary-foreground" : "bg-muted"
-              } rounded-lg p-2 sm:p-3 mt-1`}
-          >
-            {!msg.isDeleted ? (
-              msg.type === "image" && msg.fileUrl ? (
-                <div>
-                  <img
-                    src={msg.fileUrl || "/placeholder.svg"}
-                    alt={msg.fileName}
-                    className="max-w-[200px] sm:max-w-xs rounded-lg border"
-                  />
-                  <p
-                    className={`text-xs sm:text-sm mt-1 ${isOwnMessage ? "text-primary-foreground/80" : "text-muted-foreground"
-                      }`}
-                  >
-                    {msg.fileName}
-                  </p>
-                </div>
-              ) : msg.type === "file" && msg.fileUrl ? (
-                <div
-                  className={`p-2 sm:p-3 border rounded-lg max-w-[200px] sm:max-w-xs ${isOwnMessage ? "bg-primary-foreground/10" : "bg-muted/30"
-                    }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm font-medium truncate">{msg.fileName}</p>
-                      <p className={`text-xs ${isOwnMessage ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
-                        {msg.fileSize && formatFileSize(msg.fileSize)}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => downloadFile(msg.fileUrl!, msg.fileName!)}
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 sm:h-8 sm:w-8 p-0 flex-shrink-0"
-                    >
-                      <Download className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs sm:text-sm leading-relaxed break-words">{msg.message}</p>
-              )
-            ) : (
-              <p
-                className={`text-xs sm:text-sm leading-relaxed break-words italic ${isOwnMessage ? "text-primary-foreground/60" : "text-muted-foreground"
-                  }`}
-              >
-                This Message is Deleted
-              </p>
-            )}
-          </div>
-        </div>
-
-        {(isAdmin || isOwnMessage) && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 sm:h-8 sm:w-8 p-0 opacity-0 group-hover:opacity-100 flex-shrink-0"
-              >
-                <MoreVertical className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => deleteMessage(msg.id)} className="text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Message
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-    )
-  }
-
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)} />
@@ -543,11 +411,11 @@ export default function RoomPage() {
       {/* Left Sidebar */}
       <div
         className={`
-    ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-    lg:translate-x-0 fixed lg:relative z-50 lg:z-auto
-    w-80 lg:w-80 h-full border-r bg-muted/30 transition-transform duration-300 ease-in-out
-    flex flex-col
-  `}
+          ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 fixed left-0 top-0 h-screen lg:relative z-50 lg:z-auto
+          w-80 lg:w-80 border-r bg-muted/30 transition-transform duration-300 ease-in-out
+          flex flex-col
+        `}
       >
         <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
           <h1 className="text-lg font-semibold flex items-center gap-2">
@@ -578,7 +446,7 @@ export default function RoomPage() {
                 </TabsList>
 
                 <TabsContent value="members" className="mt-4">
-                  <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
+                  <div className="space-y-2 overflow-y-auto">
                     {members.map((member) => (
                       <Card key={member.id} className="transition-colors hover:bg-muted/50">
                         <CardContent className="p-3">
@@ -629,7 +497,7 @@ export default function RoomPage() {
                 </TabsContent>
 
                 <TabsContent value="pending" className="mt-4">
-                  <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
+                  <div className="space-y-2 overflow-y-auto">
                     {pending.map((p) => (
                       <Card key={p.user.id} className="transition-colors hover:bg-muted/50">
                         <CardContent className="p-3">
@@ -721,7 +589,7 @@ export default function RoomPage() {
       </div>
 
       {/* Right Chat Section */}
-      <div className="flex-1 flex flex-col lg:ml-0">
+      <div className="flex-1 flex flex-col h-screen">
         {/* Chat Header */}
         <div className="p-4 border-b bg-background">
           <div className="flex items-center justify-between">
@@ -760,24 +628,25 @@ export default function RoomPage() {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-2 sm:p-4">
-          <div className="space-y-1 group">
-            {messages.map((msg) => renderMessage(msg))}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {messages.length === 0 && (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              <div className="text-center">
-                <div className="text-4xl mb-2">💬</div>
-                <p className="text-sm sm:text-base">No messages yet. Start the conversation!</p>
-              </div>
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full p-2 sm:p-4" ref={messagesEndRef}>
+            <div className="space-y-1 group">
+              {messages.map((msg) => message({ msg, isOwnMessage: msg.user.id === user?.id, isAdmin, deleteMessage }))}
             </div>
-          )}
-        </ScrollArea>
 
-        {/* Message Input */}
-        <div className="p-2 sm:p-4 border-t bg-background">
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">💬</div>
+                  <p className="text-sm sm:text-base">No messages yet. Start the conversation!</p>
+                </div>
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+
+        {/* Message Input - Fixed at bottom */}
+        <div className="flex-shrink-0 p-2 sm:p-4 border-t bg-background">
           {fileUpload.isUploading && (
             <div className="mb-3 p-3 bg-muted rounded-lg">
               <div className="flex items-center justify-between mb-2">
@@ -887,7 +756,7 @@ export default function RoomPage() {
         {isLoadingSummary ? (
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
         ) : (
-          <FileText className="h-6 w-6" />
+          <BotMessageSquare className="h-4 w-4" />
         )}
       </Button>
 
@@ -900,14 +769,12 @@ export default function RoomPage() {
                 <FileText className="h-5 w-5" />
                 Chat Summary
               </h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowSummary(false)}>
+              <Button variant="ghost" size="sm" className="text-white" onClick={() => setShowSummary(false)}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {chatSummary || "No summary available."}
-              </p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{chatSummary || "No summary available."}</p>
             </div>
           </div>
         </div>

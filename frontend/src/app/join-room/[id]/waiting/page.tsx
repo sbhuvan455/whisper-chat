@@ -26,7 +26,11 @@ const WaitingRoom = () => {
             type: JOIN_ROOM,
             data: {
                 roomId,
-                user
+                user: {
+                    id: user.id,
+                    fullName: user.fullName || '',
+                    imageUrl: user.imageUrl || null,
+                }
             }
         }
 
@@ -38,11 +42,11 @@ const WaitingRoom = () => {
             try {
                 const { type, data } = JSON.parse(event.data)
 
-                if (type === JOIN_ROOM && data.roomId === roomId) {
+                if (type === JOIN_ROOM) {
                     router.push(`/join-room/${roomId}`)
                 }
 
-                if (type === ADMIN_NOT_IN_ROOM && data.roomId === roomId) {
+                if (type === ADMIN_NOT_IN_ROOM) {
                     setAdminNotInRoom(true)
                 }
             } catch (err) {
