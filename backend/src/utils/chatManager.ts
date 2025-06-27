@@ -4,10 +4,10 @@ import { acceptUser, createNewMember } from '../controller/room.controller';
 import { RoomManager } from './roomManager';
 
 export class ChatManager {
-    private rooms: Map<string, string>;  // Maps roomId to adminId
-    private admin: Map<string, WebSocket>; // Maps adminId to WebSocket connection
-    private roomObj: Map<string, RoomManager>; // Maps roomId to Room object connection
-    private pendingMembers: Map<string, Map<string, WebSocket>>; // roomId -> userId -> WebSocket
+    private rooms: Map<string, string>;
+    private admin: Map<string, WebSocket>;
+    private roomObj: Map<string, RoomManager>;
+    private pendingMembers: Map<string, Map<string, WebSocket>>;
 
     constructor() {
         this.rooms = new Map<string, string>();
