@@ -34,7 +34,7 @@ export const createRoom = async (req: Request, res: Response) => {
 
         });
     } catch (error) {
-        // console.error('Error creating room:', error);
+        console.error('Error creating room:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 }

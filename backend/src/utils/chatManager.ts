@@ -150,7 +150,7 @@ export class ChatManager {
                 }
             })
             .catch((err) => {
-                // console.log('Error accepting user:', err);
+                console.log('Error accepting user:', err);
             })
     }
 

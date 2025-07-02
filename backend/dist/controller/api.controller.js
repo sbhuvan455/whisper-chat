@@ -38,7 +38,7 @@ const createRoom = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         });
     }
     catch (error) {
-        // console.error('Error creating room:', error);
+        console.error('Error creating room:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });

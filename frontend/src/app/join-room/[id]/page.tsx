@@ -163,11 +163,19 @@ export default function RoomPage() {
           setMessages((prev) => [...prev, data])
           break
         case MEMBERS_UPDATE:
-          // console.log("Members updated:", data)
-          setMembers((prevMember) => [...prevMember, data])
-          break
+          setMembers((prevMembers) => {
+            const alreadyExists = prevMembers.some((member) => member.id === data.id);
+            if (alreadyExists) return prevMembers;
+            return [...prevMembers, data];
+          });
+          break;
+
         case PERMISSION:
-          setPending((prevPending) => [...prevPending, data])
+          setPending((prevPending) => {
+            const alreadyExists = prevPending.some((p) => p.user.id === data.user.id)
+            if (alreadyExists) return prevPending
+            return [...prevPending, data]
+          })
           console.log("Pending users:", data)
           break
         case DELETE_MESSAGE:
@@ -759,15 +767,15 @@ export default function RoomPage() {
       <Button
         onClick={fetchChatSummary}
         disabled={isLoadingSummary}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-30"
-        size="lg"
+        className="fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-30 bg-blue-600 text-white flex items-center justify-center"
       >
         {isLoadingSummary ? (
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
         ) : (
-          <BotMessageSquare className="h-4 w-4" />
+          <BotMessageSquare className="w-7 h-7" />
         )}
       </Button>
+
 
       {/* Summary Dialog */}
       {showSummary && (
