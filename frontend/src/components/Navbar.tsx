@@ -60,7 +60,7 @@ export default function Navbar() {
                                 </Link>
                             </SignedOut>
                             <Link
-                                href="/about"
+                                href="/"
                                 className="flex items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                                 prefetch={false}
                             >

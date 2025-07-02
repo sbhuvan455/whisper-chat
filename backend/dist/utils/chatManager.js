@@ -22,6 +22,7 @@ class ChatManager {
     }
     initRooms(roomId, adminId) {
         this.rooms.set(roomId, adminId);
+        this.roomObj.set(roomId, new roomManager_1.RoomManager(roomId, adminId));
     }
     clearRooms() {
         this.rooms.clear();
@@ -34,13 +35,29 @@ class ChatManager {
     joinRoom(ws, roomId, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = user === null || user === void 0 ? void 0 : user.id;
-            console.log('User trying to join room:', user, roomId);
+            // console.log('User trying to join room:', user, roomId);
             if (this.rooms.has(roomId)) {
                 yield (0, room_controller_1.createNewMember)(user, roomId)
                     .then((res) => {
-                    console.log('Response from createNewMember:', res);
+                    // console.log('Response from createNewMember:', res);
                     if (res.success) {
-                        if (res.isAdmin) {
+                        if (res.isOnline) {
+                            // console.log("The user was online");
+                            const roomManager = this.roomObj.get(roomId);
+                            roomManager === null || roomManager === void 0 ? void 0 : roomManager.addMember(user, ws);
+                            if (res.isAdmin) {
+                                this.admin.set(userId, ws);
+                            }
+                            ws.send(JSON.stringify({
+                                type: types_1.JOIN_ROOM,
+                                data: {
+                                    user,
+                                    isAdmin: true,
+                                    roomId,
+                                }
+                            }));
+                        }
+                        else if (res.isAdmin) {
                             // Join him to the room
                             this.admin.set(userId, ws);
                             const roomManager = this.roomObj.get(roomId);
@@ -71,7 +88,7 @@ class ChatManager {
                                 this.pendingMembers.set(roomId, new Map());
                             }
                             this.pendingMembers.get(roomId).set(userId, ws);
-                            console.log('Admin WebSocket:', user);
+                            // console.log('Admin WebSocket:', user);
                             if (adminWs) {
                                 adminWs.send(JSON.stringify({
                                     type: types_1.PERMISSION,
@@ -100,7 +117,7 @@ class ChatManager {
             const userId = user.id;
             const pending = (_a = this.pendingMembers.get(roomId)) === null || _a === void 0 ? void 0 : _a.get(userId);
             if (!pending) {
-                console.log(`No pending connection found for ${userId} in room ${roomId}`);
+                // console.log(`No pending connection found for ${userId} in room ${roomId}`);
                 return;
             }
             yield (0, room_controller_1.acceptUser)(user, roomId)
@@ -125,7 +142,7 @@ class ChatManager {
                 }
             })
                 .catch((err) => {
-                console.log('Error accepting user:', err);
+                // console.log('Error accepting user:', err);
             });
         });
     }
@@ -165,16 +182,16 @@ class ChatManager {
     }
     sendMessage(ws, user, roomId, message) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("I am sending the message", message);
+            // console.log("I am sending the message", message);
             const roomManager = this.roomObj.get(roomId);
-            console.log("Here");
+            // console.log("Here")
             if (!roomManager) {
                 ws.send(JSON.stringify({ type: types_1.ROOM_NOT_FOUND, data: { roomId } }));
-                console.log("room nhi mila bhai");
+                // console.log("room nhi mila bhai");
                 return;
             }
             roomManager.handleMessage(user, message);
-            console.log("Ho gya join");
+            // console.log("Ho gya join");
         });
     }
     sendFile(ws, user, roomId, fileUrl, fileName, fileSize) {
@@ -198,7 +215,7 @@ class ChatManager {
     deleteMessage(roomId, chatId, userId) {
         const roomManager = this.roomObj.get(roomId);
         if (!roomManager) {
-            console.log("Room not found for deleting message");
+            // console.log("Room not found for deleting message");
             return;
         }
         roomManager.deleteMessage(chatId, userId);

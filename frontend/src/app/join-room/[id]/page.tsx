@@ -59,7 +59,7 @@ import message from "@/components/message"
 export default function RoomPage() {
   const { id: roomId } = useParams()
   const { user } = useUser()
-  const { socket } = useSocket()
+  const { socket, isConnected } = useSocket()
   const { toast } = useToast()
   const router = useRouter()
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -145,6 +145,13 @@ export default function RoomPage() {
   }, [user, roomId])
 
   useEffect(() => {
+    if (!isConnected) {
+      console.warn("[RoomPage] Socket lost. Redirecting to reconnecting page")
+      router.push(`/join-room/${roomId}/reconnecting`)
+    }
+  }, [isConnected])
+
+  useEffect(() => {
     if (!socket || !user || !roomId) return
 
     const handleMessage = (event: MessageEvent) => {
@@ -220,7 +227,9 @@ export default function RoomPage() {
     if (user) fetchAdmin()
     if (roomId) fetchMember()
 
-    return () => socket.removeEventListener("message", handleMessage)
+    return () => {
+      socket.removeEventListener("message", handleMessage)
+    }
   }, [socket, user, roomId])
 
   const sendMessage = () => {

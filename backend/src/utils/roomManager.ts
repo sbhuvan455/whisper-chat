@@ -49,7 +49,7 @@ export class RoomManager {
             }
         })
 
-        console.log("Member removed:", member);
+        // console.log("Member removed:", member);
 
         const payload = JSON.stringify({
             type: REMOVED,
@@ -135,7 +135,7 @@ export class RoomManager {
     }
 
     async handleMessage(sender: any, message: string) {
-        console.log("I am here in the room manager sending messages");
+        // console.log("I am here in the room manager sending messages");
         if (this.isMuted(sender.id)) return;
 
         const member = await prisma.member.findFirst({
@@ -145,7 +145,7 @@ export class RoomManager {
             },
         });
 
-        console.log("It's not done yet");
+        // console.log("It's not done yet");
 
         if (!member) return;
 
@@ -157,7 +157,7 @@ export class RoomManager {
             },
         });
 
-        console.log("It's not done yet");
+        // console.log("It's not done yet");
 
         const payload = JSON.stringify({
             type: NEW_MESSAGE,
@@ -170,7 +170,7 @@ export class RoomManager {
             },
         });
 
-        console.log("It's done now");
+        // console.log("It's done now");
 
         for (const [, memberWs] of this.members) {
             memberWs.send(payload);
@@ -181,7 +181,7 @@ export class RoomManager {
         try {
             if (this.isMuted(sender.id)) throw new Error("You are muted and cannot send files");
 
-            console.log("Handling file in room manager:", fileUrl, fileName, fileSize);
+            // console.log("Handling file in room manager:", fileUrl, fileName, fileSize);
 
             const member = await prisma.member.findFirst({
                 where: {
@@ -204,7 +204,7 @@ export class RoomManager {
             });
 
             if (!chat) throw new Error("Error creating chat message with file");
-            console.log("File chat created:", chat);
+            // console.log("File chat created:", chat);
 
             const payload = JSON.stringify({
                 type: NEW_MESSAGE,
@@ -235,7 +235,7 @@ export class RoomManager {
                 include: { Member: true },
             })
 
-            console.log("Chat found:", chat, "UserId is", userId);
+            // console.log("Chat found:", chat, "UserId is", userId);
 
             if (!chat) throw new Error("Message not found");
 
@@ -260,7 +260,7 @@ export class RoomManager {
             for (const [, memberWs] of this.members) {
                 memberWs.send(payload);
             }
-            console.log("Message deleted successfully:", deletedChat);
+            // console.log("Message deleted successfully:", deletedChat);
         } catch (error) {
             console.error("Error deleting message:", error);
         }
@@ -271,6 +271,16 @@ export class RoomManager {
             where: { id: this.roomId },
             data: { isActive: false },
         });
+
+        await prisma.member.updateMany({
+            where: {
+                roomId: this.roomId,
+                online: true,
+            },
+            data: {
+                online: false,
+            }
+        })
 
         for (const [, ws] of this.members) {
             ws.send(JSON.stringify({ type: ROOM_CLOSED }));

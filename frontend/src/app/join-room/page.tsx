@@ -124,7 +124,7 @@ function JoinRoom() {
 
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(`http://localhost:3000/join-room/${generatedRoomId}`);
+    navigator.clipboard.writeText(`http://localhost:3000/join-room/${generatedRoomId}/waiting`);
     toast({ description: "Copied" });
   };
 
@@ -179,24 +179,24 @@ function JoinRoom() {
 
           <div className="space-y-2">
             <Label>Create New Room</Label>
-              <div className="space-y-2">
-                <div className="flex space-x-2">
-                  <Input
-                    id="roomId"
-                    placeholder="Enter room Name"
-                    value={roomTitle}
-                    onChange={(e) => setRoomTitle(e.target.value)}
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <Input
-                    id="roomId"
-                    placeholder="Enter room description"
-                    value={roomDesc}
-                    onChange={(e) => setRoomDesc(e.target.value)}
-                  />
-                </div>
+            <div className="space-y-2">
+              <div className="flex space-x-2">
+                <Input
+                  id="roomId"
+                  placeholder="Enter room Name"
+                  value={roomTitle}
+                  onChange={(e) => setRoomTitle(e.target.value)}
+                />
               </div>
+              <div className="flex space-x-2">
+                <Input
+                  id="roomId"
+                  placeholder="Enter room description"
+                  value={roomDesc}
+                  onChange={(e) => setRoomDesc(e.target.value)}
+                />
+              </div>
+            </div>
             <Button
               onClick={generateRoomId}
               className="w-full"
@@ -214,7 +214,7 @@ function JoinRoom() {
             {generatedRoomId && (
               <div className="mt-4 space-y-2">
                 <Input
-                  value={`http://localhost:3000/join-room/${generatedRoomId}`}
+                  value={`http://localhost:3000/join-room/${generatedRoomId}/waiting`}
                   readOnly
                 />
                 <div className="flex space-x-2">

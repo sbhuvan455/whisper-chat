@@ -4,10 +4,10 @@ import { acceptUser, createNewMember } from '../controller/room.controller';
 import { RoomManager } from './roomManager';
 
 export class ChatManager {
-    private rooms: Map<string, string>;
-    private admin: Map<string, WebSocket>;
-    private roomObj: Map<string, RoomManager>;
-    private pendingMembers: Map<string, Map<string, WebSocket>>;
+    private rooms: Map<string, string>; // Maps roomId to adminId
+    private admin: Map<string, WebSocket>; // Maps adminId to WebSocket connection
+    private roomObj: Map<string, RoomManager>; // Maps roomId to Room object connection
+    private pendingMembers: Map<string, Map<string, WebSocket>>; // roomId -> userId -> WebSocket
 
     constructor() {
         this.rooms = new Map<string, string>();
@@ -18,6 +18,8 @@ export class ChatManager {
 
     public initRooms(roomId: string, adminId: string) {
         this.rooms.set(roomId, adminId);
+
+        this.roomObj.set(roomId, new RoomManager(roomId, adminId));
     }
 
     public clearRooms() {
@@ -34,14 +36,31 @@ export class ChatManager {
     public async joinRoom(ws: WebSocket, roomId: string, user: any) {
         const userId = user?.id;
 
-        console.log('User trying to join room:', user, roomId);
+        // console.log('User trying to join room:', user, roomId);
 
         if (this.rooms.has(roomId)) {
             await createNewMember(user, roomId)
                 .then((res) => {
-                    console.log('Response from createNewMember:', res);
+                    // console.log('Response from createNewMember:', res);
                     if (res.success) {
-                        if (res.isAdmin) {
+                        if (res.isOnline) {
+                            // console.log("The user was online");
+                            const roomManager = this.roomObj.get(roomId);
+                            roomManager?.addMember(user, ws);
+
+                            if (res.isAdmin) {
+                                this.admin.set(userId, ws);
+                            }
+
+                            ws.send(JSON.stringify({
+                                type: JOIN_ROOM,
+                                data: {
+                                    user,
+                                    isAdmin: true,
+                                    roomId,
+                                }
+                            }))
+                        } else if (res.isAdmin) {
                             // Join him to the room
                             this.admin.set(userId, ws);
 
@@ -75,7 +94,7 @@ export class ChatManager {
                             }
                             this.pendingMembers.get(roomId)!.set(userId, ws);
 
-                            console.log('Admin WebSocket:', user);
+                            // console.log('Admin WebSocket:', user);
 
                             if (adminWs) {
                                 adminWs.send(JSON.stringify({
@@ -103,7 +122,7 @@ export class ChatManager {
         const pending = this.pendingMembers.get(roomId)?.get(userId);
 
         if (!pending) {
-            console.log(`No pending connection found for ${userId} in room ${roomId}`);
+            // console.log(`No pending connection found for ${userId} in room ${roomId}`);
             return;
         }
 
@@ -131,7 +150,7 @@ export class ChatManager {
                 }
             })
             .catch((err) => {
-                console.log('Error accepting user:', err);
+                // console.log('Error accepting user:', err);
             })
     }
 
@@ -174,18 +193,18 @@ export class ChatManager {
     }
 
     public async sendMessage(ws: WebSocket, user: string, roomId: string, message: string) {
-        console.log("I am sending the message", message);
+        // console.log("I am sending the message", message);
         const roomManager = this.roomObj.get(roomId);
-        console.log("Here")
+        // console.log("Here")
 
         if (!roomManager) {
             ws.send(JSON.stringify({ type: ROOM_NOT_FOUND, data: { roomId } }));
-            console.log("room nhi mila bhai");
+            // console.log("room nhi mila bhai");
             return;
         }
 
         roomManager.handleMessage(user, message);
-        console.log("Ho gya join");
+        // console.log("Ho gya join");
     }
 
     public async sendFile(ws: WebSocket, user: string, roomId: string, fileUrl: string, fileName: string, fileSize: number) {
@@ -213,7 +232,7 @@ export class ChatManager {
         const roomManager = this.roomObj.get(roomId);
 
         if (!roomManager) {
-            console.log("Room not found for deleting message");
+            // console.log("Room not found for deleting message");
             return;
         }
 

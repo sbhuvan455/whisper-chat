@@ -52,7 +52,7 @@ class RoomManager {
                     online: false,
                 }
             });
-            console.log("Member removed:", member);
+            // console.log("Member removed:", member);
             const payload = JSON.stringify({
                 type: types_1.REMOVED,
                 data: {
@@ -130,7 +130,7 @@ class RoomManager {
     }
     handleMessage(sender, message) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("I am here in the room manager sending messages");
+            // console.log("I am here in the room manager sending messages");
             if (this.isMuted(sender.id))
                 return;
             const member = yield __1.prisma.member.findFirst({
@@ -139,7 +139,7 @@ class RoomManager {
                     roomId: this.roomId,
                 },
             });
-            console.log("It's not done yet");
+            // console.log("It's not done yet");
             if (!member)
                 return;
             const chat = yield __1.prisma.chat.create({
@@ -149,7 +149,7 @@ class RoomManager {
                     MemberId: member.id,
                 },
             });
-            console.log("It's not done yet");
+            // console.log("It's not done yet");
             const payload = JSON.stringify({
                 type: types_1.NEW_MESSAGE,
                 data: {
@@ -160,7 +160,7 @@ class RoomManager {
                     createdAt: chat === null || chat === void 0 ? void 0 : chat.createdAt,
                 },
             });
-            console.log("It's done now");
+            // console.log("It's done now");
             for (const [, memberWs] of this.members) {
                 memberWs.send(payload);
             }
@@ -171,7 +171,7 @@ class RoomManager {
             try {
                 if (this.isMuted(sender.id))
                     throw new Error("You are muted and cannot send files");
-                console.log("Handling file in room manager:", fileUrl, fileName, fileSize);
+                // console.log("Handling file in room manager:", fileUrl, fileName, fileSize);
                 const member = yield __1.prisma.member.findFirst({
                     where: {
                         userId: sender.id,
@@ -192,7 +192,7 @@ class RoomManager {
                 });
                 if (!chat)
                     throw new Error("Error creating chat message with file");
-                console.log("File chat created:", chat);
+                // console.log("File chat created:", chat);
                 const payload = JSON.stringify({
                     type: types_1.NEW_MESSAGE,
                     data: {
@@ -221,7 +221,7 @@ class RoomManager {
                     where: { id: chatId },
                     include: { Member: true },
                 });
-                console.log("Chat found:", chat, "UserId is", userId);
+                // console.log("Chat found:", chat, "UserId is", userId);
                 if (!chat)
                     throw new Error("Message not found");
                 if (userId !== (chat === null || chat === void 0 ? void 0 : chat.Member.userId) && userId !== this.adminId)
@@ -243,7 +243,7 @@ class RoomManager {
                 for (const [, memberWs] of this.members) {
                     memberWs.send(payload);
                 }
-                console.log("Message deleted successfully:", deletedChat);
+                // console.log("Message deleted successfully:", deletedChat);
             }
             catch (error) {
                 console.error("Error deleting message:", error);
@@ -255,6 +255,15 @@ class RoomManager {
             yield __1.prisma.room.update({
                 where: { id: this.roomId },
                 data: { isActive: false },
+            });
+            yield __1.prisma.member.updateMany({
+                where: {
+                    roomId: this.roomId,
+                    online: true,
+                },
+                data: {
+                    online: false,
+                }
             });
             for (const [, ws] of this.members) {
                 ws.send(JSON.stringify({ type: types_1.ROOM_CLOSED }));

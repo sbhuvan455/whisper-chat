@@ -41,6 +41,7 @@ const initializeActiveRooms = (chatManager) => __awaiter(void 0, void 0, void 0,
 });
 exports.initializeActiveRooms = initializeActiveRooms;
 const createNewMember = (user, roomId) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Creating new member for user:", user, "in room:", roomId);
     try {
         const userId = user === null || user === void 0 ? void 0 : user.id;
         const image_url = (user === null || user === void 0 ? void 0 : user.imageUrl) || null;
@@ -56,14 +57,19 @@ const createNewMember = (user, roomId) => __awaiter(void 0, void 0, void 0, func
         });
         if (!room)
             throw new Error("Room Not Found");
-        if (userId == room.adminId) {
-            const Member = yield __1.prisma.member.findFirst({
-                where: {
-                    roomId,
-                    userId
-                }
-            });
+        const Member = yield __1.prisma.member.findFirst({
+            where: {
+                roomId,
+                userId
+            }
+        });
+        console.log("Member found:", Member);
+        const isAdmin = (room === null || room === void 0 ? void 0 : room.adminId) == userId;
+        if (Member === null || Member === void 0 ? void 0 : Member.online)
+            return { success: true, isAdmin: isAdmin, isOnline: true, message: "the User is already a member of the room" };
+        if (isAdmin) {
             if (!Member) {
+                console.log("creating new memeber because previously the member does not exists", Member);
                 const newMember = yield __1.prisma.member.create({
                     data: {
                         roomId,
@@ -85,9 +91,9 @@ const createNewMember = (user, roomId) => __awaiter(void 0, void 0, void 0, func
                     }
                 });
             }
-            return { success: true, isAdmin: true, message: "the User is the admin of the room" };
+            return { success: true, isAdmin: true, isOnline: false, message: "the User is the admin of the room" };
         }
-        return { success: true, isAdmin: false, message: "the User is not the admin of the room" };
+        return { success: true, isAdmin: false, isOnline: false, message: "the User is not the admin of the room" };
     }
     catch (error) {
         console.log('Error joining room:', error);
