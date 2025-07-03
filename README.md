@@ -4,7 +4,9 @@ Whisper Chat is a real-time chat application built using **WebSockets**, **Next.
 Users can create or join rooms, exchange messages instantly, and recover from disconnections via automatic reconnection logic.
 
 ---
-
+# Demo
+<video src="https://github.com/user-attachments/assets/3ccf9935-3fec-4983-b330-ae31f23099bb" controls="controls" muted="muted" playsinline="playsinline"></video>
+---
 ## 🚀 Features
 
 - 🔒 Secure authentication with [Clerk](https://clerk.com/)
