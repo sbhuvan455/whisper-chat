@@ -1,6 +1,6 @@
-# Whisper Chat 💬
+# PulseChat 💬
 
-Whisper Chat is a real-time chat application built using **WebSockets**, **Next.js**, **Clerk authentication**, **Prisma**, and **PostgreSQL**.
+PulseChat is a real-time chat application built using **WebSockets**, **Next.js**, **Clerk authentication**, **Prisma**, and **PostgreSQL**.
 Users can create or join rooms, exchange messages instantly, and recover from disconnections via automatic reconnection logic.
 
 ---
